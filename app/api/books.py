@@ -42,7 +42,7 @@ class ReviewResponse(ReviewCreate):
 @router.post("/", response_model=BookResponse, status_code=status.HTTP_201_CREATED)
 @token_required
 async def create_book(request: Request, book: BookCreate, db: AsyncSession = Depends(get_db)):
-    new_book = Book(**book.dict())
+    new_book = Book(**book.model_dump())
     db.add(new_book)
     await db.commit()
     await db.refresh(new_book)
@@ -153,7 +153,7 @@ async def add_review(request: Request, book_id: int, review: ReviewCreate, db: A
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
 
     user = fetch_user_by_request(request)
-    review = review.dict()
+    review = review.model_dump()
     review['user_id'] = user['user_id']
     new_review = Review(book_id=book_id, **review)
     db.add(new_review)

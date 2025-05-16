@@ -6,6 +6,7 @@ from app.api.books import router as book_router
 from app.models.database import init_db
 from app.api.user import router as auth_router
 import asyncio
+from contextlib import asynccontextmanager
 
 http_bearer = HTTPBearer()
 
@@ -15,6 +16,15 @@ async def global_auth_dependency(credentials: HTTPAuthorizationCredentials = Dep
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     return payload
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    print("Initializing database...")
+    # await init_db()
+    yield
+    # Shutdown
+    pass
 
 app = FastAPI(
     title="Book Management System",
@@ -28,6 +38,7 @@ app = FastAPI(
         "name": "MIT License",
         "url": "https://opensource.org/licenses/MIT",
     },
+    lifespan=lifespan
 )
 
 # Custom OpenAPI schema to include Bearer token in Swagger UI
@@ -56,11 +67,6 @@ def custom_openapi():
     return app.openapi_schema
 
 app.openapi = custom_openapi
-
-@app.on_event("startup")
-async def startup_event():
-    print("Initializing database...")
-    # await init_db()
 
 @app.get("/", include_in_schema=False)
 async def root():
