@@ -12,7 +12,6 @@ from httpx._transports.asgi import ASGITransport
 from app.models.database import init_db
 from app.models.book import Base
 
-pytestmark = pytest.mark.order(1)  # File-level marker to run this file first
 
 @pytest.fixture(scope="module", autouse=True)
 async def setup_database():
@@ -56,12 +55,6 @@ async def client(db_session):
     async with AsyncClient(transport=transport, base_url="http://testserver") as ac:
         yield ac
 
-# Export the access_token variable for use in other test files
-__all__ = ["access_token"]
-
-access_token = None  # Global variable to store the access token
-
-@pytest.mark.run(order=1)  # Add a marker to indicate the order
 @pytest.mark.asyncio
 async def test_register_user(client):
     response = await client.post(
@@ -75,7 +68,6 @@ async def test_register_user(client):
     assert response.status_code == 200
     assert response.json()["message"] == "User registered successfully"
 
-@pytest.mark.run(order=1)
 @pytest.mark.asyncio
 async def test_login_user(client):
     global access_token  # Declare the global variable
@@ -90,7 +82,6 @@ async def test_login_user(client):
     assert "access_token" in response.json()
     access_token = response.json()["access_token"]  # Store the token
 
-@pytest.mark.run(order=1)
 @pytest.mark.asyncio
 async def test_get_profile(client):
     global access_token  # Use the global variable

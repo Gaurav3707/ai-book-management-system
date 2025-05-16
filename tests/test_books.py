@@ -12,7 +12,6 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from app.models.book import Base
 
-valid_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJpbUdhdXJhdiIsInJvbGUiOiJ1c2VyIiwidXNlcl9pZCI6MSwiZW1haWwiOiJnYXVyYXZAeW9wbWFpbC5jb20iLCJleHAiOjE3NDczODI2NjF9.9bBj2d9OuHLR0d0OE3dbxK0YcWN_jrH7Etw1lbs2YUU"  # Replace with the actual valid token used in your app
 
 DATABASE_URL = "sqlite+aiosqlite:///:memory:"  # Use an in-memory SQLite database for testing
 
@@ -47,10 +46,40 @@ async def client(db_session):
     async with AsyncClient(transport=transport, base_url="http://testserver") as ac:
         yield ac
 
-created_book_id = None  # Shared variable to store the created book's ID
+created_book_id = None
+valid_token = None
+
+@pytest.mark.asyncio
+async def test_user_onboarding(client):
+    global valid_token  # Declare the global variable
+    response = await client.post(
+        "/auth/register",
+        json={
+            "username": "testuser",
+            "email": "testuser@example.com",
+            "password": "password123"
+        }
+    )
+    assert response.status_code == 200
+    assert response.json()["message"] == "User registered successfully"
+
+    response = await client.post(
+        "/auth/login",
+        json={
+            "username": "testuser",
+            "password": "password123"
+        }
+    )
+    assert response.status_code == 200
+    assert "access_token" in response.json()
+    valid_token = response.json()["access_token"]  # Store the token
+#=============================
 
 @pytest.mark.asyncio
 async def test_create_book(client):
+    print("--------------3333333333------------")
+    print(valid_token)
+    print("--------------3333333333------------")
     global created_book_id  # Declare the variable as global to modify it
     response = await client.post(
         "/api/books/",
