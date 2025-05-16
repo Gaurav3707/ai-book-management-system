@@ -123,7 +123,7 @@ async def update_book(request: Request, book_id: int, book: BookCreate, db: Asyn
     try:
         result = await db.execute(select(Book).where(Book.id == book_id))
         existing_book = result.scalar_one()
-        for key, value in book.dict().items():
+        for key, value in book.model_dump().items():
             setattr(existing_book, key, value)
         db.add(existing_book)
         await db.commit()

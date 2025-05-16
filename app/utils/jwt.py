@@ -1,5 +1,5 @@
 from jwt import encode, decode, ExpiredSignatureError, InvalidTokenError
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, Request
 
 SECRET_KEY = "your_secret_key"
@@ -7,7 +7,7 @@ ALGORITHM = "HS256"
 
 def create_access_token(data: dict, expires_delta: timedelta = timedelta(hours=1)):
     to_encode = data.copy()
-    expire = datetime.utcnow() + expires_delta
+    expire = datetime.now(timezone.utc) + expires_delta
     to_encode.update({"exp": expire})
     return encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
