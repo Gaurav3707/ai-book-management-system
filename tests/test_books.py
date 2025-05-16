@@ -123,10 +123,6 @@ async def test_update_book(client):
     assert response.status_code == 200
     assert response.json()["title"] == "Updated Test Book"
 
-@pytest.mark.asyncio
-async def test_delete_book(client):
-    response = await client.delete("/api/books/1", headers={"Authorization": f"Bearer {valid_token}"})
-    assert response.status_code == 204
 
 @pytest.mark.asyncio
 async def test_add_review(client):
@@ -197,3 +193,8 @@ async def test_generate_summary_by_book_name(client):
     )
     assert response.status_code == 200
     assert "summary" in response.json()
+
+@pytest.mark.asyncio
+async def test_delete_book(client):
+    response = await client.delete("/api/books/1", headers={"Authorization": f"Bearer {valid_token}"})
+    assert response.status_code == 204

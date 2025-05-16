@@ -174,7 +174,7 @@ async def get_reviews(request: Request, book_id: int, db: AsyncSession = Depends
 async def get_book_summary(request: Request, book_id: int, db: AsyncSession = Depends(get_db)):
     try:
         result = await db.execute(select(Book).where(Book.id == book_id))
-        book = result.scalar_one()  # Moved inside the try block
+        book = result.scalar_one()
     except NoResultFound:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
     
