@@ -77,9 +77,6 @@ async def test_user_onboarding(client):
 
 @pytest.mark.asyncio
 async def test_create_book(client):
-    print("--------------3333333333------------")
-    print(valid_token)
-    print("--------------3333333333------------")
     global created_book_id  # Declare the variable as global to modify it
     response = await client.post(
         "/api/books/",
@@ -144,21 +141,40 @@ async def test_add_review(client):
 
 @pytest.mark.asyncio
 async def test_get_reviews(client):
-    response = await client.get("/api/books/1/reviews", headers={"Authorization": f"Bearer {valid_token}"})
+    assert created_book_id is not None, "Book ID is not set. Ensure test_create_book runs first."
+    response = await client.get(f"/api/books/{created_book_id}/reviews", headers={"Authorization": f"Bearer {valid_token}"})
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
 @pytest.mark.asyncio
 async def test_get_book_summary(client):
-    response = await client.get("/api/books/1/summary", headers={"Authorization": f"Bearer {valid_token}"})
+    global created_book_id  # Use the shared variable
+    if created_book_id is None:  # Ensure a book exists
+        response = await client.post(
+            "/api/books/",
+            json={
+                "title": "Test Book for Summary",
+                "author": "Test Author",
+                "genre": "Fiction",
+                "year_published": 2023,
+                "summary": "A test book summary for summary endpoint."
+            },
+            headers={"Authorization": f"Bearer {valid_token}"}
+        )
+        assert response.status_code == 201
+        created_book_id = response.json()["id"]
+
+    response = await client.get(f"/api/books/{created_book_id}/summary", headers={"Authorization": f"Bearer {valid_token}"})
     assert response.status_code == 200
     assert "average_rating" in response.json()
 
 @pytest.mark.asyncio
 async def test_generate_summary(client):
+    test_content="In today’s digital landscape, chatbots are becoming increasingly prevalent, serving as virtual assistants and conversation partners. However, a key challenge lies in crafting chatbots that can understand and respond to user queries in a context-aware manner, simulating natural conversation flow. This article delves into building a context-aware chatbot using LangChain, a powerful open-source framework, and Chat Model, a versatile tool for interacting with various language models."
+
     response = await client.post(
         "/api/books/generate-summary",
-        json={"content": "This is a test content."},
+        json={"content": test_content},
         headers={"Authorization": f"Bearer {valid_token}"}
     )
     assert response.status_code == 200
@@ -167,7 +183,7 @@ async def test_generate_summary(client):
 @pytest.mark.asyncio
 async def test_generate_summary_by_book_id(client):
     response = await client.post(
-        "/api/books/generate-summary-by-book-id/1",
+        f"/api/books/generate-summary-by-book-id/{created_book_id}",
         headers={"Authorization": f"Bearer {valid_token}"}
     )
     assert response.status_code == 200

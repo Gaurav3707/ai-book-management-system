@@ -23,6 +23,10 @@ class BookCreate(BaseModel):
     year_published: int
     summary: str
 
+class SummaryCreate(BaseModel):
+    content: str
+
+
 class BookResponse(BookCreate):
     id: int
 
@@ -170,24 +174,26 @@ async def get_reviews(request: Request, book_id: int, db: AsyncSession = Depends
 async def get_book_summary(request: Request, book_id: int, db: AsyncSession = Depends(get_db)):
     try:
         result = await db.execute(select(Book).where(Book.id == book_id))
-        book = result.scalar_one()
-        reviews_result = await db.execute(select(Review).where(Review.book_id == book_id))
-        reviews = reviews_result.scalars().all()
-        avg_rating = sum([review.rating for review in reviews]) / len(reviews) if reviews else 0
-        return {
-            "title": book.title,
-            "author": book.author,
-            "summary": book.summary,
-            "average_rating": avg_rating,
-            "total_reviews": len(reviews),
-        }
+        book = result.scalar_one()  # Moved inside the try block
     except NoResultFound:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+    
+    reviews_result = await db.execute(select(Review).where(Review.book_id == book_id))
+    reviews = reviews_result.scalars().all()
+    avg_rating = sum([review.rating for review in reviews]) / len(reviews) if reviews else 0
+    return {
+        "title": book.title,
+        "author": book.author,
+        "summary": book.summary,
+        "average_rating": avg_rating,
+        "total_reviews": len(reviews),
+    }
+    
 
 @router.post("/generate-summary")
 @token_required
-async def generate_summary(request: Request, content: str):
-    prompt = f"Provide a short summary for the following - {content}."
+async def generate_summary(request: Request, content: SummaryCreate):
+    prompt = f"Provide a short summary for the following - {content.content}."
 
     # Collect the streamed response
     async with httpx.AsyncClient() as client:
@@ -205,7 +211,7 @@ async def generate_summary(request: Request, content: str):
 
 @router.post("/generate-summary-by-book-id/{book_id}")
 @token_required
-async def generate_summary(request: Request, book_id: int, db: AsyncSession = Depends(get_db)):
+async def generate_summary_by_book_id(request: Request, book_id: int, db: AsyncSession = Depends(get_db)):
     try:
         result = await db.execute(select(Book).where(Book.id == book_id))
         book = result.scalar_one()
@@ -228,7 +234,7 @@ async def generate_summary(request: Request, book_id: int, db: AsyncSession = De
 
 @router.get("/generate-summary-by-book-name/{book_name}")
 @token_required
-async def generate_summary(request: Request, book_name: str, db: AsyncSession = Depends(get_db)):
+async def generate_summary_by_book_name(request: Request, book_name: str, db: AsyncSession = Depends(get_db)):
     prompt = f"Provide a short summary for book - {book_name}."
 
     # Collect the streamed response
