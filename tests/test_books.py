@@ -6,7 +6,7 @@ import pytest_asyncio
 from httpx import AsyncClient
 from httpx._transports.asgi import ASGITransport
 from main import app
-from app.models.database import init_db, get_db  # Import get_db for dependency override
+from app.models.database import get_db  # Import get_db for dependency override
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
@@ -66,6 +66,7 @@ async def test_create_book(client):
     assert response.status_code == 201
     assert response.json()["title"] == "Test Book"
     created_book_id = response.json()["id"]  # Store the created book's ID
+    print(f"Created book ID: {created_book_id}")  # Debug statement
 
 @pytest.mark.asyncio
 async def test_list_books(client):
@@ -75,9 +76,10 @@ async def test_list_books(client):
 
 @pytest.mark.asyncio
 async def test_get_book(client):
-    response = await client.get("/api/books/1", headers={"Authorization": f"Bearer {valid_token}"})
+    global created_book_id  # Use the shared variable
+    response = await client.get(f"/api/books/{created_book_id}", headers={"Authorization": f"Bearer {valid_token}"})
     assert response.status_code == 200
-    assert response.json()["id"] == 1
+    assert response.json()["id"] == created_book_id
 
 @pytest.mark.asyncio
 async def test_update_book(client):
@@ -103,6 +105,7 @@ async def test_delete_book(client):
 @pytest.mark.asyncio
 async def test_add_review(client):
     global created_book_id  # Use the shared variable
+    assert created_book_id is not None, "Book ID is not set. Ensure test_create_book runs first."
     response = await client.post(
         f"/api/books/{created_book_id}/reviews",  # Use the created book's ID
         json={"review_text": "Great book!", "rating": 5},
