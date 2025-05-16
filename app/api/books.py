@@ -144,15 +144,14 @@ async def delete_book(request: Request, book_id: int, db: AsyncSession = Depends
 @token_required
 async def add_review(request: Request, book_id: int, review: ReviewCreate, db: AsyncSession = Depends(get_db)):
     try:
-        result = await db.execute(select(Book).where(Book.id == book_id))
+        await db.execute(select(Book).where(Book.id == book_id))
     except NoResultFound:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
 
     user = fetch_user_by_request(request)
-    book = result.scalar_one()
     review = review.dict()
     review['user_id'] = user['user_id']
-    new_review = Review(book_id=book.id, **review)
+    new_review = Review(book_id=book_id, **review)
     db.add(new_review)
     await db.commit()
     await db.refresh(new_review)
@@ -227,7 +226,7 @@ async def generate_summary(request: Request, book_id: int, db: AsyncSession = De
 
     return {"book_id": book_id, "summary": content}
 
-@router.post("/generate-summary-by-book-name/{book_name}")
+@router.get("/generate-summary-by-book-name/{book_name}")
 @token_required
 async def generate_summary(request: Request, book_name: str, db: AsyncSession = Depends(get_db)):
     prompt = f"Provide a short summary for book - {book_name}."

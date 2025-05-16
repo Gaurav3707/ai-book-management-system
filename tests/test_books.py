@@ -133,7 +133,6 @@ async def test_delete_book(client):
 
 @pytest.mark.asyncio
 async def test_add_review(client):
-    global created_book_id  # Use the shared variable
     assert created_book_id is not None, "Book ID is not set. Ensure test_create_book runs first."
     response = await client.post(
         f"/api/books/{created_book_id}/reviews",  # Use the created book's ID
@@ -176,8 +175,8 @@ async def test_generate_summary_by_book_id(client):
 
 @pytest.mark.asyncio
 async def test_generate_summary_by_book_name(client):
-    response = await client.post(
-        "/api/books/generate-summary-by-book-name/Test Book",
+    response = await client.get(
+        "/api/books/generate-summary-by-book-name/Harry Potter",
         headers={"Authorization": f"Bearer {valid_token}"}
     )
     assert response.status_code == 200
