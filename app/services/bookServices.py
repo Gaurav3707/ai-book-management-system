@@ -14,7 +14,7 @@ from app.utils.messages.bookMessages import (
     REVIEW_ADDED_SUCCESS, BOOK_SUMMARY_RETRIEVED_SUCCESS,
     SUMMARY_GENERATED_SUCCESS, SUMMARY_GENERATION_FAILED,
     INVALID_REVIEW_INPUT, INVALID_BOOK_INPUT, DATABASE_ERROR, 
-    DUPLICATE_BOOK, DUPLICATE_REVIEW
+    DUPLICATE_BOOK, DUPLICATE_REVIEW, NO_AI_CONTENT
 )
 from app.utils.logger import get_logger
 
@@ -103,6 +103,9 @@ class BookService:
             </responseFormat>
             </Instruction>"""
             content = await InferenceHelper.call_ai_model(prompt)
+            if content is None:
+                logger.warning("AI model returned no content.")
+                return {"data": None, "status": 400, "message": NO_AI_CONTENT}
             logger.debug(f"AI model response: {content}")
             recommendations = await convert_string_to_json(content)
             logger.info("Recommendations generated successfully.")
