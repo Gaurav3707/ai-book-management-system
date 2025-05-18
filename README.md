@@ -12,10 +12,12 @@ The Book Management System is a FastAPI-based application that allows users to m
 ## Project Structure
 
 - `app/`: Contains the main application code.
-  - `api/`: API routes for books and reviews.
+  - `api/`: API routes for books and user authentication.
   - `config/`: Configuration settings for the application.
   - `models/`: Database models.
+  - `utils/`: Utility functions and dependencies.
 - `migrations/`: Database migration files.
+- `tests/`: Test suites for API endpoints.
 - `.env`: Environment variables for sensitive data.
 
 ## Prerequisites
@@ -23,13 +25,14 @@ The Book Management System is a FastAPI-based application that allows users to m
 - Python 3.9+
 - PostgreSQL database
 - `pip` for managing Python packages
+- Ollama installed and running locally
 
 ## Setup Instructions
 
 1. Clone the repository:
    ```bash
    git clone <repository-url>
-   cd book-management-system/book_management
+   cd book-management-system
    ```
 
 2. Create a virtual environment and activate it:
@@ -49,6 +52,7 @@ The Book Management System is a FastAPI-based application that allows users to m
    JWT_SECRET=your_jwt_secret
    JWT_ALGORITHM=HS256
    OLLAMA_ENDPOINT=http://localhost:11434/api/generate
+   AI_MODEL=llama3.2:1b
    ```
 
 5. Apply database migrations:
@@ -73,6 +77,47 @@ The Book Management System is a FastAPI-based application that allows users to m
 
 ## API Endpoints
 
+### User Authentication
+
+- **Register User**  
+  `POST /auth/register`  
+  Request Body:
+  ```json
+  {
+    "username": "string",
+    "email": "string",
+    "password": "string"
+  }
+  ```
+
+- **Login User**  
+  `POST /auth/login`  
+  Request Body:
+  ```json
+  {
+    "username": "string",
+    "password": "string"
+  }
+  ```
+  Response:
+  ```json
+  {
+    "access_token": "string",
+    "token_type": "bearer"
+  }
+  ```
+
+- **Get User Profile**  
+  `GET /auth/profile`  
+  Headers: `Authorization: Bearer <access_token>`  
+  Response:
+  ```json
+  {
+    "username": "string",
+    "role": "string"
+  }
+  ```
+
 ### Books
 
 - **Create a Book**  
@@ -89,17 +134,21 @@ The Book Management System is a FastAPI-based application that allows users to m
   ```
 
 - **List All Books**  
-  `GET /api/books/`
+  `GET /api/books/`  
+  Headers: `Authorization: Bearer <access_token>`
 
 - **Get a Book by ID**  
-  `GET /api/books/{book_id}`
+  `GET /api/books/{book_id}`  
+  Headers: `Authorization: Bearer <access_token>`
 
 - **Update a Book**  
   `PUT /api/books/{book_id}`  
-  Request Body: Same as "Create a Book".
+  Request Body: Same as "Create a Book".  
+  Headers: `Authorization: Bearer <access_token>`
 
 - **Delete a Book**  
-  `DELETE /api/books/{book_id}`
+  `DELETE /api/books/{book_id}`  
+  Headers: `Authorization: Bearer <access_token>`
 
 ### Reviews
 
@@ -108,19 +157,17 @@ The Book Management System is a FastAPI-based application that allows users to m
   Request Body:
   ```json
   {
-    "user_id": 1,
     "review_text": "Great book!",
     "rating": 5
   }
   ```
+  Headers: `Authorization: Bearer <access_token>`
 
 - **List Reviews for a Book**  
-  `GET /api/books/{book_id}/reviews`
+  `GET /api/books/{book_id}/reviews`  
+   Headers: `Authorization: Bearer <access_token>`
 
 ### Summaries
-
-- **Generate Summary for a Book**  
-  `POST /api/books/generate-summary/{book_id}`
 
 - **Generate Summary for Custom Content**  
   `POST /api/books/generate-summary`  
@@ -130,11 +177,24 @@ The Book Management System is a FastAPI-based application that allows users to m
     "content": "Custom content to summarize."
   }
   ```
+   Headers: `Authorization: Bearer <access_token>`
+
+- **Generate Summary for a Book by ID**  
+  `POST /api/books/generate-summary-by-book-id/{book_id}`  
+   Headers: `Authorization: Bearer <access_token>`
+
+- **Generate Summary for a Book by Name**  
+ `GET /api/books/generate-summary-by-book-name/{book_name}`
+   Headers: `Authorization: Bearer <access_token>`
+
+- **Get Book Summary**  
+  `GET /api/books/{book_id}/summary`  
+   Headers: `Authorization: Bearer <access_token>`
 
 ### Recommendations
-
 - **Get Book Recommendations**  
   `GET /api/books/recommendations`
+   Headers: `Authorization: Bearer <access_token>`
 
 ## Environment Variables
 
@@ -142,4 +202,22 @@ The Book Management System is a FastAPI-based application that allows users to m
 - `JWT_SECRET`: Secret key for JWT authentication.
 - `JWT_ALGORITHM`: Algorithm used for JWT.
 - `OLLAMA_ENDPOINT`: Endpoint for the AI model to generate summaries and recommendations.
-- `AI_MODEL`: Pulled AI model on ollama.
+- `AI_MODEL`: The name of the AI model pulled on Ollama.
+
+## Testing
+
+The application includes a comprehensive test suite using `pytest` and `pytest-asyncio`. Tests cover:
+
+- User authentication (registration, login, profile access).
+- Book management (creation, retrieval, update, deletion).
+- Review management (adding and listing reviews).
+- Summary generation.
+- Book recommendations.
+
+To run the tests:
+
+```bash
+pytest
+```
+
+Ensure that the test database is properly configured and that all necessary environment variables are set before running the tests.

@@ -10,7 +10,7 @@ import httpx, json
 from app.config.settings import settings
 from app.utils.decorators import token_required 
 from app.utils.jwt import fetch_user_by_request
-from app.utils.helper import convert_string_to_json
+from app.utils.helper import convert_string_to_json, call_ai_model
 
 
 router = APIRouter()
@@ -94,15 +94,7 @@ async def get_recommendations(request: Request, db: AsyncSession = Depends(get_d
 </Instruction>
 """
 
-    async with httpx.AsyncClient() as client:
-        async with client.stream("POST", settings.OLLAMA_ENDPOINT, json={
-            "model": settings.AI_MODEL,
-            "prompt": prompt
-        }) as response:
-            content = ""
-            async for chunk in response.aiter_text():
-                chunk = json.loads(chunk)
-                content += chunk['response']
+    content = await call_ai_model(prompt)
 
     data = await convert_string_to_json(content)
     return {"data": data}
@@ -195,16 +187,7 @@ async def get_book_summary(request: Request, book_id: int, db: AsyncSession = De
 async def generate_summary(request: Request, content: SummaryCreate):
     prompt = f"Provide a short summary for the following - {content.content}."
 
-    # Collect the streamed response
-    async with httpx.AsyncClient() as client:
-        async with client.stream("POST", settings.OLLAMA_ENDPOINT, json={
-            "model": settings.AI_MODEL,
-            "prompt": prompt
-        }) as response:
-            content = ""
-            async for chunk in response.aiter_text():
-                chunk = json.loads(chunk)
-                content += chunk['response']
+    content = await call_ai_model(prompt)
 
     return {"summary": content}
 
@@ -219,16 +202,7 @@ async def generate_summary_by_book_id(request: Request, book_id: int, db: AsyncS
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
     prompt = f"Provide a short summary for book - {book.title} by {book.author}."
 
-    # Collect the streamed response
-    async with httpx.AsyncClient() as client:
-        async with client.stream("POST", settings.OLLAMA_ENDPOINT, json={
-            "model": settings.AI_MODEL,
-            "prompt": prompt
-        }) as response:
-            content = ""
-            async for chunk in response.aiter_text():
-                chunk = json.loads(chunk)
-                content += chunk['response']
+    content = await call_ai_model(prompt)
 
     return {"book_id": book_id, "summary": content}
 
@@ -237,16 +211,7 @@ async def generate_summary_by_book_id(request: Request, book_id: int, db: AsyncS
 async def generate_summary_by_book_name(request: Request, book_name: str, db: AsyncSession = Depends(get_db)):
     prompt = f"Provide a short summary for book - {book_name}."
 
-    # Collect the streamed response
-    async with httpx.AsyncClient() as client:
-        async with client.stream("POST", settings.OLLAMA_ENDPOINT, json={
-            "model": settings.AI_MODEL,
-            "prompt": prompt
-        }) as response:
-            content = ""
-            async for chunk in response.aiter_text():
-                chunk = json.loads(chunk)
-                content += chunk['response']
+    content = await call_ai_model(prompt)
 
     return {"book_name": book_name, "summary": content}
 
