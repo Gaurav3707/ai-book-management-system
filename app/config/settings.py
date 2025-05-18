@@ -11,11 +11,11 @@ class Settings(BaseSettings):
     DATABASE_URL: str = os.getenv("DATABASE_URL")
     JWT_SECRET: str = os.getenv("JWT_SECRET")
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM")
-    OLLAMA_ENDPOINT: str = os.getenv("OLLAMA_ENDPOINT")
-    AI_MODEL: str = os.getenv("LOCAL_AI_MODEL")
-    OPEN_ROUTER_API_KEY: str = os.getenv("OPEN_ROUTER_API_KEY")
-    USE_OPEN_ROUTER: bool = os.getenv("USE_OPEN_ROUTER", "False").lower() == "true"
-    OPEN_ROUTER_MODEL: str = os.getenv("OPEN_ROUTER_MODEL")
-    OPEN_ROUTER_URL: str = os.getenv("OPEN_ROUTER_URL")
+    USE_LOCAL_MODEL: bool = os.getenv("USE_LOCAL_MODEL", "False").lower() == "true"
+    LOCALLY_DEPLOYED_LLM_ENDPOINT: str = os.getenv("LOCALLY_DEPLOYED_LLM_ENDPOINT")
+    LOCAL_AI_MODEL: str = os.getenv("LOCAL_AI_MODEL")
+    HOSTED_MODEL_API_KEY: str = os.getenv("HOSTED_MODEL_API_KEY")
+    HOSTED_MODEL_MODEL: str = os.getenv("HOSTED_MODEL_MODEL")
+    HOSTED_MODEL_ENDPOINT: str = os.getenv("HOSTED_MODEL_ENDPOINT")
 
 settings = Settings()

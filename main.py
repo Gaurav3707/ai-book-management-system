@@ -26,7 +26,7 @@ async def global_auth_dependency(credentials: HTTPAuthorizationCredentials = Dep
 async def lifespan(app: FastAPI):
     logger.info("Starting application...")
     try:
-        await init_db()
+        # await init_db()
         logger.info("Database initialized.")
     except Exception as e:
         logger.error(f"Error during database initialization: {e}")

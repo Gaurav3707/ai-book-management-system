@@ -10,23 +10,23 @@ class InferenceHelper:
     async def call_ai_model(prompt: str):
         logger.info("Calling AI model.")
         try:
-            if settings.USE_OPEN_ROUTER and settings.USE_OPEN_ROUTER is True:
-                logger.debug("Using OpenRouter for AI inference.")
-                return await InferenceHelper.call_open_router(prompt)
+            if settings.USE_LOCAL_MODEL is True:
+                logger.debug("Using Locally deployed Model for AI inference.")
+                return await InferenceHelper.call_local_model(prompt)
             else:
-                logger.debug("Using Ollama for AI inference.")
-                return await InferenceHelper.call_ollama(prompt)
+                logger.debug("Using hosted AI model for AI inference.")
+                return await InferenceHelper.call_hosted_model(prompt)
         except Exception as e:
             logger.error(f"Error during AI model call: {e}")
             logger.debug("Falling back to Ollama model.")
-            return await InferenceHelper.call_open_router(prompt)
+            return await InferenceHelper.call_hosted_model(prompt)
 
     @staticmethod
-    async def call_ollama(prompt: str):
+    async def call_local_model(prompt: str):
         logger.info("Calling Ollama model.")
         async with httpx.AsyncClient() as client:
-            async with client.stream("POST", settings.OLLAMA_ENDPOINT, json={
-                "model": settings.AI_MODEL,
+            async with client.stream("POST", settings.LOCALLY_DEPLOYED_LLM_ENDPOINT, json={
+                "model": settings.LOCAL_AI_MODEL,
                 "prompt": prompt
             }) as response:
                 content = ""
@@ -37,17 +37,17 @@ class InferenceHelper:
                 return content
 
     @staticmethod
-    async def call_open_router(prompt: str):
-        logger.info("Calling OpenRouter model.")
+    async def call_hosted_model(prompt: str):
+        logger.info("Calling hosted AI model.")
         headers = {
-            "Authorization": f"Bearer {settings.OPEN_ROUTER_API_KEY}",
+            "Authorization": f"Bearer {settings.HOSTED_MODEL_API_KEY}",
             "Content-Type": "application/json",
         }
         data = json.dumps({
-            "model": settings.OPEN_ROUTER_MODEL,
+            "model": settings.HOSTED_MODEL_MODEL,
             "messages": [{"role": "user", "content": prompt}],
         })
         async with httpx.AsyncClient() as client:
-            response = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, data=data)
-            logger.debug(f"OpenRouter response: {response.text}")
+            response = await client.post(settings.HOSTED_MODEL_ENDPOINT, headers=headers, data=data)
+            logger.debug(f"Together AI response: {response.text}")
             return response.json()['choices'][0]['message']['content']

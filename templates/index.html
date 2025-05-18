@@ -21,21 +21,31 @@
 </head>
 <body class="bg-gradient-to-br from-indigo-50 via-white to-indigo-50 p-6 min-h-screen">
   <div class="max-w-5xl mx-auto space-y-10">
-    <header class="text-center mb-8">
-      <h1 class="text-4xl font-extrabold text-indigo-900 drop-shadow-md flex justify-center items-center gap-3">
+    <header class="text-center mb-8 relative">
+      <div class="absolute top-4 right-4 flex gap-3">
+        <button onclick="window.open('/docs', '_blank')" class="bg-indigo-600 text-white px-6 py-3 text-center rounded-lg shadow hover:bg-indigo-700 flex items-center justify-center">
+          Swagger UI
+        </button>
+        <button onclick="window.open('/redoc', '_blank')" class="bg-indigo-600 text-white px-6 py-3 text-center rounded-lg shadow hover:bg-indigo-700 flex items-center justify-center">
+          ReDoc
+        </button>
+      </div>
+      <h1 class="text-4xl font-extrabold text-indigo-900 drop-shadow-md flex justify-left items-left gap-3">
         <span class="text-5xl">📚</span> Book Management System
       </h1>
-      <p class="mt-3 max-w-3xl mx-auto text-indigo-700 text-lg leading-relaxed font-medium">
+      <!-- <p class="mt-3 max-w-3xl mx-auto text-indigo-700 text-lg leading-relaxed font-medium">
         Manage books, reviews, and generate AI-powered summaries and recommendations with ease.
-      </p>
+      </p> -->
     </header>
 
     <section class="bg-white p-8 rounded-3xl shadow-xl ring-1 ring-indigo-200">
-        <h2 class="text-3xl font-semibold text-indigo-900 mb-5 flex items-center gap-3">
-          <span class="text-4xl">📝</span> Description
-        </h2>
+      <h2 class="text-3xl font-semibold text-indigo-900 mb-5 flex items-center gap-3">
+        <span class="text-4xl">📝</span> Description
+      </h2>
+      <p class="mt-3 text-indigo-700 text-lg leading-relaxed font-medium text-left">
         The Book Management System is a FastAPI-based application that allows users to manage books and their reviews. It includes features like adding, updating, deleting books, managing reviews, and generating summaries using an external AI model. The application leverages a locally running Ollama instance to generate book summaries and provide book recommendations.
-      </section>
+      </p>
+    </section>
 
     <section class="bg-white p-8 rounded-3xl shadow-xl ring-1 ring-indigo-200">
       <h2 class="text-3xl font-semibold text-indigo-900 mb-5 flex items-center gap-3">
@@ -85,7 +95,7 @@
             <li><code>utils/</code>: Utility functions and dependencies.
               <ul class="list-disc list-inside ml-6 mt-2 space-y-1">
                 <li><code>messages</code>: Response messages for API endpoints.</li>
-                <li><code>ai_inference.py</code>: Functions for interacting with the Ollama instance and Open Router.</li>
+                <li><code>ai_inference.py</code>: Functions for interacting with the Ollama instance and Hosted AI model.</li>
                 <li><code>auth.py</code>: Functions for user authentication.</li>
                 <li><code>decorators.py</code>: Decorators for API routes.</li>
                 <li><code>dependencies.py</code>: Dependency injection for API routes.</li>
@@ -144,7 +154,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate</pre>
           <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">DATABASE_URL=postgresql+asyncpg://&lt;username&gt;:&lt;password&gt;@&lt;host&gt;/&lt;database&gt;
 JWT_SECRET=your_jwt_secret
 JWT_ALGORITHM=HS256
-OLLAMA_ENDPOINT=http://localhost:11434/api/generate
+LOCALLY_DEPLOYED_LLM_ENDPOINT=http://localhost:11434/api/generate
 AI_MODEL=llama3.2:1b</pre>
         </li>
         <li>
@@ -311,7 +321,7 @@ ollama run llama3.2:1b</pre>
         <li><code>DATABASE_URL</code>: Connection string for the PostgreSQL database.</li>
         <li><code>JWT_SECRET</code>: Secret key for JWT authentication.</li>
         <li><code>JWT_ALGORITHM</code>: Algorithm used for JWT.</li>
-        <li><code>OLLAMA_ENDPOINT</code>: Endpoint for the AI model to generate summaries and recommendations.</li>
+        <li><code>LOCALLY_DEPLOYED_LLM_ENDPOINT</code>: Endpoint for the AI model to generate summaries and recommendations.</li>
         <li><code>AI_MODEL</code>: The name of the AI model pulled on Ollama.</li>
       </ul>
     </section>

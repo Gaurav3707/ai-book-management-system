@@ -27,7 +27,7 @@ The Book Management System is a FastAPI-based application that allows users to m
     - `userServices.py`: User-related business logic.
   - `utils/`: Utility functions and dependencies.
     - `messages`: Response messages for API endpoints.
-    - `ai_inference.py`: Functions for interacting with the Ollama instance and Open Router.
+    - `ai_inference.py`: Functions for interacting with the Ollama and Hosted model instance.
     - `auth.py`: Functions for user authentication.
     - `decorators.py`: Decorators for API routes.
     - `dependencies.py`: Dependency injection for API routes.
@@ -76,12 +76,12 @@ The Book Management System is a FastAPI-based application that allows users to m
    DATABASE_URL=postgresql+asyncpg://<username>:<password>@<host>/<database>
    JWT_SECRET=your_jwt_secret
    JWT_ALGORITHM=HS256
-   OLLAMA_ENDPOINT=http://localhost:11434/api/generate
+   LOCALLY_DEPLOYED_LLM_ENDPOINT=http://localhost:11434/api/generate
    LOCAL_AI_MODEL=llama3.2:1b
-   OPEN_ROUTER_API_KEY= //optional if you want to use open router instead of ollama
-   OPEN_ROUTER_MODEL= //optional if you want to use open router instead of ollama
-   USE_OPEN_ROUTER=False
-   OPEN_ROUTER_URL=//optional if you want to use open router instead of ollama
+   HOSTED_MODEL_API_KEY= //optional - API key of AI provider 
+   HOSTED_MODEL_MODEL= //optional if you want to use hosted ai provider instead of locally deployed model
+   USE_LOCAL_MODEL=False
+   HOSTED_MODEL_ENDPOINT=//optional if you want to use hosted ai provider instead of locally deployed model
    ```
 
 5. Apply database migrations:
@@ -230,8 +230,8 @@ The Book Management System is a FastAPI-based application that allows users to m
 - `DATABASE_URL`: Connection string for the PostgreSQL database.
 - `JWT_SECRET`: Secret key for JWT authentication.
 - `JWT_ALGORITHM`: Algorithm used for JWT.
-- `OLLAMA_ENDPOINT`: Endpoint for the AI model to generate summaries and recommendations.
-- `AI_MODEL`: The name of the AI model pulled on Ollama.
+- `LOCALLY_DEPLOYED_LLM_ENDPOINT`: Endpoint for the AI model to generate summaries and recommendations.
+- `LOCAL_AI_MODEL`: The name of the AI model pulled on Ollama.
 
 ## Logging
 
