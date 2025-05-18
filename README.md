@@ -77,7 +77,11 @@ The Book Management System is a FastAPI-based application that allows users to m
    JWT_SECRET=your_jwt_secret
    JWT_ALGORITHM=HS256
    OLLAMA_ENDPOINT=http://localhost:11434/api/generate
-   AI_MODEL=llama3.2:1b
+   LOCAL_AI_MODEL=llama3.2:1b
+   OPEN_ROUTER_API_KEY= //optional if you want to use open router instead of ollama
+   OPEN_ROUTER_MODEL= //optional if you want to use open router instead of ollama
+   USE_OPEN_ROUTER=False
+   OPEN_ROUTER_URL=//optional if you want to use open router instead of ollama
    ```
 
 5. Apply database migrations:
