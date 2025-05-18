@@ -16,5 +16,6 @@ class Settings(BaseSettings):
     OPEN_ROUTER_API_KEY: str = os.getenv("OPEN_ROUTER_API_KEY")
     USE_OPEN_ROUTER: bool = os.getenv("USE_OPEN_ROUTER", "False").lower() == "true"
     OPEN_ROUTER_MODEL: str = os.getenv("OPEN_ROUTER_MODEL")
+    OPEN_ROUTER_URL: str = os.getenv("OPEN_ROUTER_URL")
 
 settings = Settings()

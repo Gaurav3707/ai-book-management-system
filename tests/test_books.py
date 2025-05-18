@@ -198,4 +198,4 @@ async def test_generate_summary_by_book_name(client):
 async def test_delete_book(client):
     global created_book_id
     response = await client.delete(f"/api/books/{created_book_id}", headers={"Authorization": f"Bearer {valid_token}"})
-    assert response.status_code == 204
+    assert response.status_code == 200

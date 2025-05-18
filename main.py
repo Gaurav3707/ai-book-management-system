@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.openapi.utils import get_openapi
+from fastapi.middleware.cors import CORSMiddleware
 from app.utils.jwt import verify_access_token
 from app.api.books import router as book_router
 from app.models.database import init_db
@@ -21,10 +22,9 @@ async def global_auth_dependency(credentials: HTTPAuthorizationCredentials = Dep
 async def lifespan(app: FastAPI):
     # Startup
     print("Initializing database...")
-    # await init_db()
+    await init_db()
     yield
     # Shutdown
-    pass
 
 app = FastAPI(
     title="Book Management System",
@@ -39,6 +39,22 @@ app = FastAPI(
         "url": "https://opensource.org/licenses/MIT",
     },
     lifespan=lifespan
+)
+
+# CORS configuration
+origins = [
+    "http://localhost",
+    "http://localhost:8080",
+    "http://localhost:3000",
+    "*",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Custom OpenAPI schema to include Bearer token in Swagger UI

@@ -2,59 +2,45 @@ import json
 import ast
 import httpx
 from app.config.settings import settings
+from fastapi import HTTPException
 
-async def convert_string_to_json(input_string: str):
+async def call_ai_model(prompt: str):
+    headers = {
+        "Content-Type": "application/json",
+    }
+    data = {
+        "prompt": prompt,
+        "max_tokens": 200,
+    }
+
+    if settings.USE_OPEN_ROUTER:
+        headers["Authorization"] = f"Bearer {settings.OPEN_ROUTER_API_KEY}"
+        data["model"] = settings.OPEN_ROUTER_MODEL
+        url = settings.OPEN_ROUTER_URL
+    else:
+        data["model"] = settings.AI_MODEL
+        url = settings.LOCAL_AI_URL
+
     try:
-        # Find the index of the first curly brace
-        start_index = input_string.find('{')
-        
-        # If no curly brace is found, return an error
-        if start_index == -1:
-            raise ValueError("No JSON object found in string")
-        
-        # Extract the JSON string
-        json_string = input_string[start_index:]
-        
-        # Load the JSON
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, headers=headers, json=data, timeout=60)
+            response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+            content = response.json()
+            return content["choices"][0]["text"].strip()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=f"AI Model API Error: {e}")
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to connect to AI Model API: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
+
+
+def convert_string_to_json(input_string: str):
+    try:
+        # Manually replace single quotes with double quotes for valid JSON
+        json_string = input_string.replace("'", "\"")
         data = json.loads(json_string)
         return data
     except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON: {e}")
-    except ValueError as e:
-        raise ValueError(str(e))
-
-async def call_ai_model(prompt: str):
-    if settings.USE_OPEN_ROUTER:
-        return await call_open_router(prompt)
-    else:
-        try:
-            return await call_ollama(prompt)
-        except Exception as e:
-            print(f"Error calling Ollama: {e}")
-            # Fallback to OpenRouter if Ollama fails
-            return await call_open_router(prompt)
-        
-async def call_ollama(prompt: str):
-    async with httpx.AsyncClient() as client:
-        async with client.stream("POST", settings.OLLAMA_ENDPOINT, json={
-            "model": settings.AI_MODEL,
-            "prompt": prompt
-        }) as response:
-            content = ""
-            async for chunk in response.aiter_text():
-                chunk = json.loads(chunk)
-                content += chunk['response']
-            return content
-
-async def call_open_router(prompt: str):
-    headers = {
-        "Authorization": f"Bearer {settings.OPEN_ROUTER_API_KEY}",
-        "Content-Type": "application/json",
-    }
-    data = json.dumps({
-        "model": settings.OPEN_ROUTER_MODEL,
-        "messages": [{"role": "user", "content": prompt}],
-    })
-    async with httpx.AsyncClient() as client:
-        response = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, data=data)
-        return response.json()['choices'][0]['message']['content']
+        print(f"Error decoding JSON: {e}")
+        return None
