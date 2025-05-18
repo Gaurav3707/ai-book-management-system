@@ -24,11 +24,18 @@ class UserService:
     @staticmethod
     async def register_user(user: UserCreate, db: AsyncSession):
         logger.info(f"Attempting to register user: {user.username}")
-        result = await db.execute(select(User).where(User.username == user.username))
+        result = await db.execute(select(User).where(User.username == user.username)) # Check for duplicate username
         db_user = result.scalars().first()
         if db_user:
             logger.warning(f"Username already registered: {user.username}")
             return {"data": None, "status": 400, "message": USERNAME_ALREADY_REGISTERED}
+
+        result = await db.execute(select(User).where(User.email == user.email)) # Check for duplicate email
+        db_email = result.scalars().first()
+        if db_email:
+            logger.warning(f"Email already registered: {user.email}")
+            return {"data": None, "status": 400, "message": "Email is already registered"}
+
         try:
             new_user = User(username=user.username, email=user.email, password=user.password)
             new_user.hash_password()

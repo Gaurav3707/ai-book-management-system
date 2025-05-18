@@ -1,6 +1,8 @@
 import json
 import ast
 from app.utils.logger import get_logger
+from sqlalchemy.future import select
+from app.models.book import Book
 
 logger = get_logger(__name__)
 
@@ -37,3 +39,21 @@ async def convert_string_to_json(response):
         except Exception as e:
             logger.error(f"Error during literal evaluation: {e}")
             return response
+
+async def check_duplicate_book(title: str, author: str, db, exclude_book_id: int = None):
+    """
+    Check if a book with the same title and author already exists in the database.
+    Optionally exclude a specific book ID from the check.
+    """
+    logger.debug(f"Checking for duplicate book: {title} by {author}")
+    try:
+        query = select(Book).where(Book.title == title, Book.author == author)
+        if exclude_book_id:
+            query = query.where(Book.id != exclude_book_id)
+        result = await db.execute(query)
+        is_duplicate = result.scalar() is not None
+        logger.debug(f"Duplicate check result: {is_duplicate}")
+        return is_duplicate
+    except Exception as e:
+        logger.error(f"Error while checking for duplicate book: {e}")
+        return False

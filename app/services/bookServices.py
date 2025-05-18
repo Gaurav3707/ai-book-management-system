@@ -3,7 +3,7 @@ from sqlalchemy.future import select
 from sqlalchemy.exc import NoResultFound, SQLAlchemyError
 from fastapi import HTTPException, Request
 from app.models.book import Book, Review
-from app.utils.helper import convert_string_to_json
+from app.utils.helper import convert_string_to_json, check_duplicate_book
 from app.utils.ai_inference import InferenceHelper
 from app.utils.jwt import fetch_user_by_request
 from pydantic import BaseModel
@@ -41,6 +41,11 @@ class BookService:
             logger.warning("Invalid book input: Missing title or author.")
             return {"data": None, "status": 400, "message": INVALID_BOOK_INPUT}
         try:
+            # Check for duplicate book title and author
+            if await check_duplicate_book(book.title, book.author, db):
+                logger.warning(f"Duplicate book found: {book.title} by {book.author}")
+                return {"data": None, "status": 400, "message": "Book with the same title and author already exists."}
+            
             new_book = Book(**book.model_dump())
             db.add(new_book)
             await db.commit()
@@ -56,9 +61,11 @@ class BookService:
     async def list_books(db: AsyncSession):
         logger.info("Fetching list of books.")
         try:
-            books = await db.execute(select(Book))
-            logger.info(f"Books retrieved successfully: {len(books.scalars().all())} books found.")
-            return {"data": books.scalars().all(), "status": 200, "message": BOOKS_RETRIEVED_SUCCESS}
+            result = await db.execute(select(Book))
+            books = result.scalars().all()
+            logger.info(f"Books retrieved successfully: {len(books)} books found.")
+            logger.debug(f"Books data: {books}")
+            return {"data": books, "status": 200, "message": BOOKS_RETRIEVED_SUCCESS}
         except SQLAlchemyError as e:
             logger.error(f"Database error while listing books: {str(e)}")
             return {"data": None, "status": 500, "message": f"{DATABASE_ERROR}: {str(e)}"}
@@ -125,6 +132,11 @@ class BookService:
             logger.warning("Invalid book input: Missing title or author.")
             return {"data": None, "status": 400, "message": INVALID_BOOK_INPUT}
         try:
+            # Check for duplicate book title and author
+            if await check_duplicate_book(book.title, book.author, db, exclude_book_id=book_id):
+                logger.warning(f"Duplicate book found: {book.title} by {book.author}")
+                return {"data": None, "status": 400, "message": "Book with the same title and author already exists."}
+            
             result = await db.execute(select(Book).where(Book.id == book_id))
             existing_book = result.scalar_one()
             logger.debug(f"Existing book data: {existing_book}")
