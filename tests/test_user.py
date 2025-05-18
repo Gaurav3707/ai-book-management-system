@@ -79,12 +79,12 @@ async def test_login_user(client):
         }
     )
     assert response.status_code == 200
-    assert "access_token" in response.json()
-    access_token = response.json()["access_token"]  # Store the token
+    assert "access_token" in response.json()["data"]
+    access_token = response.json()["data"]["access_token"]  # Store the token
 
 @pytest.mark.asyncio
 async def test_get_profile(client):
     global access_token  # Use the global variable
     response = await client.get("/auth/profile", headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
-    assert "username" in response.json()
+    assert "username" in response.json()["data"]

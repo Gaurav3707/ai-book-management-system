@@ -22,7 +22,7 @@ async def global_auth_dependency(credentials: HTTPAuthorizationCredentials = Dep
 async def lifespan(app: FastAPI):
     # Startup
     print("Initializing database...")
-    await init_db()
+    # await init_db()
     yield
     # Shutdown
 

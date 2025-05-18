@@ -26,7 +26,7 @@ class UserService:
         db.add(new_user)
         await db.commit()
         await db.refresh(new_user)
-        return {"message": "User registered successfully"}
+        return {"data":None, "status":201, "message": "User registered successfully"}
 
     @staticmethod
     async def login_user(user: UserLogin, db: AsyncSession):
@@ -35,8 +35,9 @@ class UserService:
         if not db_user or not db_user.verify_password(user.password):
             raise HTTPException(status_code=400, detail="Invalid credentials")
         token = create_access_token({"sub": db_user.username, "role": db_user.role, "user_id": db_user.id, "email": db_user.email})
-        return {"access_token": token, "token_type": "bearer"}
+        return {"data":{"access_token": token, "token_type": "bearer"}, "status": 200, "message": "Login successful"}
 
     @staticmethod
     async def get_user_profile(user: dict):
-        return {"username": user["sub"], "role": user["role"]}
+        data =  {"username": user["sub"], "role": user["role"]}
+        return {"data": data, "status": 200, "message": "User profile retrieved successfully"}

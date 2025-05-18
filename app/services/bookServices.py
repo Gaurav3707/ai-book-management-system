@@ -3,7 +3,8 @@ from sqlalchemy.future import select
 from sqlalchemy.exc import NoResultFound, SQLAlchemyError
 from fastapi import HTTPException, Request
 from app.models.book import Book, Review
-from app.utils.helper import call_ai_model, convert_string_to_json
+from app.utils.helper import convert_string_to_json
+from app.utils.ai_inference import InferenceHelper
 from app.utils.jwt import fetch_user_by_request
 from pydantic import BaseModel
 from typing import List
@@ -73,7 +74,9 @@ class BookService:
                 </guidelines>
             </responseFormat>
             </Instruction>"""
-            content = await call_ai_model(prompt)
+            content = await InferenceHelper.call_ai_model(prompt)
+            print(content)
+            print("=============+++++++++++===============++++++++++++")
             recommendations = await convert_string_to_json(content)
             return {"data": recommendations, "status": 200, "message": "Recommendations retrieved successfully"}
         except SQLAlchemyError as e:
@@ -177,7 +180,7 @@ class BookService:
     @staticmethod
     async def generate_summary(content: SummaryCreate):
         prompt = f"Provide a short summary for the following - {content.content}."
-        summary = await call_ai_model(prompt)
+        summary = await InferenceHelper.call_ai_model(prompt)
         if summary is None:
             return {"data": {"content": content.content, "summary": summary}, "status": 400, "message": "Something went wrong"}
         return {"data": {"content": content.content, "summary": summary}, "status": 200, "message": "Summary generated successfully"}
@@ -190,7 +193,7 @@ class BookService:
         except NoResultFound:
             raise HTTPException(status_code=404, detail="Book not found")
         prompt = f"Provide a short summary for book - {book.title} by {book.author}."
-        summary = await call_ai_model(prompt)
+        summary = await InferenceHelper.call_ai_model(prompt)
         if summary is None:
             return {"data":{"book_id": book_id, "summary": summary}, "status": 400, "message": "Something went wrong"}
         return {"data":{"book_id": book_id, "summary": summary}, "status": 200, "message": "Summary generated successfully"}
@@ -198,7 +201,7 @@ class BookService:
     @staticmethod
     async def generate_summary_by_book_name(book_name: str):
         prompt = f"Provide a short summary for book - {book_name}."
-        summary = await call_ai_model(prompt)
+        summary = await InferenceHelper.call_ai_model(prompt)
         if summary is None:
             return {"data":{"book_name": book_name, "summary": summary}, "status": 400, "message": "Something went wrong"}
         return {"data":{"book_name": book_name, "summary": summary}, "status": 200, "message": "Summary generated successfully"}

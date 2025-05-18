@@ -71,8 +71,8 @@ async def test_user_onboarding(client):
         }
     )
     assert response.status_code == 200
-    assert "access_token" in response.json()
-    valid_token = response.json()["access_token"]  # Store the token
+    assert "access_token" in response.json()["data"]
+    valid_token = response.json()["data"]["access_token"]  # Store the token
 #=============================
 
 @pytest.mark.asyncio
@@ -81,16 +81,16 @@ async def test_create_book(client):
     response = await client.post(
         "/api/books/",
         json={
-            "title": "Test Book",
-            "author": "Test Author",
+            "title": "Harry Potter",
+            "author": "JK Rowling",
             "genre": "Fiction",
-            "year_published": 2023,
+            "year_published": 1998,
             "summary": "A test book summary."
         },
         headers={"Authorization": f"Bearer {valid_token}"}
     )
     assert response.status_code == 201
-    assert response.json()['data']["title"] == "Test Book"
+    assert response.json()['data']["title"] == "Harry Potter"
     created_book_id = response.json()['data']["id"]  # Store the created book's ID
     print(f"Created book ID: {created_book_id}")  # Debug statement
 
@@ -112,16 +112,16 @@ async def test_update_book(client):
     response = await client.put(
         "/api/books/1",
         json={
-            "title": "Updated Test Book",
+            "title": "Harry Potter and the Goblet of Fire",
             "author": "Updated Author",
             "genre": "Non-Fiction",
-            "year_published": 2024,
+            "year_published": 1998,
             "summary": "Updated summary."
         },
         headers={"Authorization": f"Bearer {valid_token}"}
     )
     assert response.status_code == 200
-    assert response.json()['data']["title"] == "Updated Test Book"
+    assert response.json()['data']["title"] == "Harry Potter and the Goblet of Fire"
 
 
 @pytest.mark.asyncio
@@ -175,6 +175,7 @@ async def test_generate_summary(client):
     )
     assert response.status_code == 200
     assert "summary" in response.json()['data']
+    assert response.json()['data']["summary"] != None
 
 @pytest.mark.asyncio
 async def test_generate_summary_by_book_id(client):
@@ -184,6 +185,7 @@ async def test_generate_summary_by_book_id(client):
     )
     assert response.status_code == 200
     assert "summary" in response.json()['data']
+    assert response.json()['data']["summary"] != None
 
 @pytest.mark.asyncio
 async def test_generate_summary_by_book_name(client):
@@ -193,6 +195,17 @@ async def test_generate_summary_by_book_name(client):
     )
     assert response.status_code == 200
     assert "summary" in response.json()['data']
+    assert response.json()['data']["summary"] != None
+
+
+@pytest.mark.asyncio
+async def test_get_recommendations(client):
+    response = await client.get("/api/books/recommendations", headers={"Authorization": f"Bearer {valid_token}"})
+    assert response.status_code == 200
+    assert isinstance(response.json()['data'], dict)
+    assert "recommendations" in response.json()['data']
+    assert len(response.json()['data']["recommendations"]) > 0
+
 
 @pytest.mark.asyncio
 async def test_delete_book(client):
