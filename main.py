@@ -8,8 +8,11 @@ from app.models.database import init_db
 from app.api.user import router as auth_router
 import asyncio
 from contextlib import asynccontextmanager
+from app.utils.logger import get_logger
 
 http_bearer = HTTPBearer()
+
+logger = get_logger(__name__)
 
 async def global_auth_dependency(credentials: HTTPAuthorizationCredentials = Depends(http_bearer)):
     token = credentials.credentials
@@ -20,11 +23,14 @@ async def global_auth_dependency(credentials: HTTPAuthorizationCredentials = Dep
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
-    print("Initializing database...")
-    # await init_db()
+    logger.info("Starting application...")
+    try:
+        await init_db()
+        logger.info("Database initialized.")
+    except Exception as e:
+        logger.error(f"Error during database initialization: {e}")
     yield
-    # Shutdown
+    logger.info("Shutting down application...")
 
 app = FastAPI(
     title="Book Management System",
@@ -86,6 +92,7 @@ app.openapi = custom_openapi
 
 @app.get("/", include_in_schema=False)
 async def root():
+    logger.info("Root endpoint accessed.")
     return {"message": "Welcome to the Book Management System"}
 
 app.include_router(book_router, prefix="/api/books", tags=["Books"])

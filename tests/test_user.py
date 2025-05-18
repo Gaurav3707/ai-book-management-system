@@ -11,7 +11,9 @@ from main import app
 from httpx._transports.asgi import ASGITransport
 from app.models.database import init_db
 from app.models.book import Base
+from app.utils.logger import get_logger
 
+logger = get_logger(__name__)
 
 @pytest.fixture(scope="module", autouse=True)
 async def setup_database():
@@ -57,6 +59,7 @@ async def client(db_session):
 
 @pytest.mark.asyncio
 async def test_register_user(client):
+    logger.info("Testing user registration.")
     response = await client.post(
         "/auth/register",
         json={
@@ -70,6 +73,7 @@ async def test_register_user(client):
 
 @pytest.mark.asyncio
 async def test_login_user(client):
+    logger.info("Testing user login.")
     global access_token  # Declare the global variable
     response = await client.post(
         "/auth/login",
@@ -84,6 +88,7 @@ async def test_login_user(client):
 
 @pytest.mark.asyncio
 async def test_get_profile(client):
+    logger.info("Testing get profile.")
     global access_token  # Use the global variable
     response = await client.get("/auth/profile", headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
