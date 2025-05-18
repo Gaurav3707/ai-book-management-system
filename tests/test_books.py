@@ -90,22 +90,22 @@ async def test_create_book(client):
         headers={"Authorization": f"Bearer {valid_token}"}
     )
     assert response.status_code == 201
-    assert response.json()["title"] == "Test Book"
-    created_book_id = response.json()["id"]  # Store the created book's ID
+    assert response.json()['data']["title"] == "Test Book"
+    created_book_id = response.json()['data']["id"]  # Store the created book's ID
     print(f"Created book ID: {created_book_id}")  # Debug statement
 
 @pytest.mark.asyncio
 async def test_list_books(client):
     response = await client.get("/api/books/", headers={"Authorization": f"Bearer {valid_token}"})
     assert response.status_code == 200
-    assert isinstance(response.json(), list)
+    assert isinstance(response.json()['data'], list)
 
 @pytest.mark.asyncio
 async def test_get_book(client):
     global created_book_id  # Use the shared variable
     response = await client.get(f"/api/books/{created_book_id}", headers={"Authorization": f"Bearer {valid_token}"})
     assert response.status_code == 200
-    assert response.json()["id"] == created_book_id
+    assert response.json()['data']["id"] == created_book_id
 
 @pytest.mark.asyncio
 async def test_update_book(client):
@@ -121,7 +121,7 @@ async def test_update_book(client):
         headers={"Authorization": f"Bearer {valid_token}"}
     )
     assert response.status_code == 200
-    assert response.json()["title"] == "Updated Test Book"
+    assert response.json()['data']["title"] == "Updated Test Book"
 
 
 @pytest.mark.asyncio
@@ -133,14 +133,14 @@ async def test_add_review(client):
         headers={"Authorization": f"Bearer {valid_token}"}
     )
     assert response.status_code == 201
-    assert response.json()["rating"] == 5
+    assert response.json()['data']["rating"] == 5
 
 @pytest.mark.asyncio
 async def test_get_reviews(client):
     assert created_book_id is not None, "Book ID is not set. Ensure test_create_book runs first."
     response = await client.get(f"/api/books/{created_book_id}/reviews", headers={"Authorization": f"Bearer {valid_token}"})
     assert response.status_code == 200
-    assert isinstance(response.json(), list)
+    assert isinstance(response.json()['data'], list)
 
 @pytest.mark.asyncio
 async def test_get_book_summary(client):
@@ -158,11 +158,11 @@ async def test_get_book_summary(client):
             headers={"Authorization": f"Bearer {valid_token}"}
         )
         assert response.status_code == 201
-        created_book_id = response.json()["id"]
+        created_book_id = response.json()['data']["id"]
 
     response = await client.get(f"/api/books/{created_book_id}/summary", headers={"Authorization": f"Bearer {valid_token}"})
     assert response.status_code == 200
-    assert "average_rating" in response.json()
+    assert "average_rating" in response.json()['data']
 
 @pytest.mark.asyncio
 async def test_generate_summary(client):
@@ -174,7 +174,7 @@ async def test_generate_summary(client):
         headers={"Authorization": f"Bearer {valid_token}"}
     )
     assert response.status_code == 200
-    assert "summary" in response.json()
+    assert "summary" in response.json()['data']
 
 @pytest.mark.asyncio
 async def test_generate_summary_by_book_id(client):
@@ -183,7 +183,7 @@ async def test_generate_summary_by_book_id(client):
         headers={"Authorization": f"Bearer {valid_token}"}
     )
     assert response.status_code == 200
-    assert "summary" in response.json()
+    assert "summary" in response.json()['data']
 
 @pytest.mark.asyncio
 async def test_generate_summary_by_book_name(client):
@@ -192,7 +192,7 @@ async def test_generate_summary_by_book_name(client):
         headers={"Authorization": f"Bearer {valid_token}"}
     )
     assert response.status_code == 200
-    assert "summary" in response.json()
+    assert "summary" in response.json()['data']
 
 @pytest.mark.asyncio
 async def test_delete_book(client):
