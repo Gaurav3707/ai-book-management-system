@@ -1,7 +1,5 @@
 import json
 import ast
-import httpx
-from app.config.settings import settings
 
 async def convert_string_to_json(response):
         try:

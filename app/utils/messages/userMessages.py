@@ -1,0 +1,5 @@
+USER_REGISTERED_SUCCESS = "User registered successfully"
+USER_LOGIN_SUCCESS = "Login successful"
+INVALID_CREDENTIALS = "Invalid credentials"
+USERNAME_ALREADY_REGISTERED = "Username already registered"
+USER_PROFILE_RETRIEVED_SUCCESS = "User profile retrieved successfully"

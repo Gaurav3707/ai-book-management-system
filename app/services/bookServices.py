@@ -8,6 +8,14 @@ from app.utils.ai_inference import InferenceHelper
 from app.utils.jwt import fetch_user_by_request
 from pydantic import BaseModel
 from typing import List
+from app.utils.messages.bookMessages import (
+    BOOK_CREATED_SUCCESS, BOOK_RETRIEVED_SUCCESS, BOOK_UPDATED_SUCCESS,
+    BOOK_DELETED_SUCCESS, BOOK_NOT_FOUND, BOOKS_RETRIEVED_SUCCESS,
+    RECOMMENDATIONS_RETRIEVED_SUCCESS, REVIEWS_RETRIEVED_SUCCESS,
+    REVIEW_ADDED_SUCCESS, BOOK_SUMMARY_RETRIEVED_SUCCESS,
+    SUMMARY_GENERATED_SUCCESS, SUMMARY_GENERATION_FAILED,
+    INVALID_REVIEW_INPUT, INVALID_BOOK_INPUT, DATABASE_ERROR
+)
 
 class BookService:
     class BookCreate(BaseModel):
@@ -27,24 +35,24 @@ class BookService:
     @staticmethod
     async def create_book(book: BookCreate, db: AsyncSession):
         if not book.title or not book.author:
-            raise HTTPException(status_code=400, detail="Title and author are required fields")
+            return {"data": None, "status": 400, "message": INVALID_BOOK_INPUT}
         try:
             new_book = Book(**book.model_dump())
             db.add(new_book)
             await db.commit()
             await db.refresh(new_book)
-            return {"data": new_book, "status": 201, "message": "Book created successfully"}
+            return {"data": new_book, "status": 201, "message": BOOK_CREATED_SUCCESS}
         except SQLAlchemyError as e:
             await db.rollback()
-            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+            return {"data": None, "status": 500, "message": f"{DATABASE_ERROR}: {str(e)}"}
 
     @staticmethod
     async def list_books(db: AsyncSession):
         try:
             books = await db.execute(select(Book))
-            return {"data": books.scalars().all(), "status": 200, "message": "Books retrieved successfully"}
+            return {"data": books.scalars().all(), "status": 200, "message": BOOKS_RETRIEVED_SUCCESS}
         except SQLAlchemyError as e:
-            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+            return {"data": None, "status": 500, "message": f"{DATABASE_ERROR}: {str(e)}"}
 
     @staticmethod
     async def get_recommendations(request: Request, db: AsyncSession):
@@ -78,25 +86,25 @@ class BookService:
             print(content)
             print("=============+++++++++++===============++++++++++++")
             recommendations = await convert_string_to_json(content)
-            return {"data": recommendations, "status": 200, "message": "Recommendations retrieved successfully"}
+            return {"data": recommendations, "status": 200, "message": RECOMMENDATIONS_RETRIEVED_SUCCESS}
         except SQLAlchemyError as e:
-            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+            return {"data": None, "status": 500, "message": f"{DATABASE_ERROR}: {str(e)}"}
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error generating recommendations: {str(e)}")
+            return {"data": None, "status": 500, "message": f"Error generating recommendations: {str(e)}"}
 
     @staticmethod
     async def get_book(book_id: int, db: AsyncSession):
         try:
             result = await db.execute(select(Book).where(Book.id == book_id))
             book = result.scalar_one()
-            return {"data": book, "status": 200, "message": "Book retrieved successfully"}
+            return {"data": book, "status": 200, "message": BOOK_RETRIEVED_SUCCESS}
         except NoResultFound:
-            raise HTTPException(status_code=404, detail="Book not found")
+            return {"data": None, "status": 404, "message": BOOK_NOT_FOUND}
 
     @staticmethod
     async def update_book(book_id: int, book: BookCreate, db: AsyncSession):
         if not book.title or not book.author:
-            raise HTTPException(status_code=400, detail="Title and author are required fields")
+            return {"data": None, "status": 400, "message": INVALID_BOOK_INPUT}
         try:
             result = await db.execute(select(Book).where(Book.id == book_id))
             existing_book = result.scalar_one()
@@ -105,12 +113,12 @@ class BookService:
             db.add(existing_book)
             await db.commit()
             await db.refresh(existing_book)
-            return {"data": existing_book, "status": 200, "message": "Book updated successfully"}
+            return {"data": existing_book, "status": 200, "message": BOOK_UPDATED_SUCCESS}
         except NoResultFound:
-            raise HTTPException(status_code=404, detail="Book not found")
+            return {"data": None, "status": 404, "message": BOOK_NOT_FOUND}
         except SQLAlchemyError as e:
             await db.rollback()
-            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+            return {"data": None, "status": 500, "message": f"{DATABASE_ERROR}: {str(e)}"}
 
     @staticmethod
     async def delete_book(book_id: int, db: AsyncSession):
@@ -119,21 +127,21 @@ class BookService:
             book = result.scalar_one()
             await db.delete(book)
             await db.commit()
-            return {"data": None, "status": 200, "message": "Book deleted successfully"}
+            return {"data": None, "status": 200, "message": BOOK_DELETED_SUCCESS}
         except NoResultFound:
-            raise HTTPException(status_code=404, detail="Book not found")
+            return {"data": None, "status": 404, "message": BOOK_NOT_FOUND}
         except SQLAlchemyError as e:
             await db.rollback()
-            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+            return {"data": None, "status": 500, "message": f"{DATABASE_ERROR}: {str(e)}"}
 
     @staticmethod
     async def add_review(book_id: int, review: ReviewCreate, request: Request, db: AsyncSession):
         if not review.review_text or not (1 <= review.rating <= 5):
-            raise HTTPException(status_code=400, detail="Review text is required and rating must be between 1 and 5")
+            return {"data": None, "status": 400, "message": INVALID_REVIEW_INPUT}
         try:
             await db.execute(select(Book).where(Book.id == book_id))
         except NoResultFound:
-            raise HTTPException(status_code=404, detail="Book not found")
+            return {"data": None, "status": 404, "message": BOOK_NOT_FOUND}
         except SQLAlchemyError as e:
             raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
         try:
@@ -144,19 +152,19 @@ class BookService:
             db.add(new_review)
             await db.commit()
             await db.refresh(new_review)
-            return {"data": new_review, "status": 201, "message": "Review added successfully"}
+            return {"data": new_review, "status": 201, "message": REVIEW_ADDED_SUCCESS}
         except SQLAlchemyError as e:
             await db.rollback()
-            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+            return {"data": None, "status": 500, "message": f"{DATABASE_ERROR}: {str(e)}"}
 
     @staticmethod
     async def get_reviews(book_id: int, db: AsyncSession):
         try:
             result = await db.execute(select(Review).where(Review.book_id == book_id))
             reviews = result.scalars().all()
-            return {"data": reviews, "status": 200, "message": "Reviews retrieved successfully"}
+            return {"data": reviews, "status": 200, "message": REVIEWS_RETRIEVED_SUCCESS}
         except SQLAlchemyError as e:
-            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+            return {"data": None, "status": 500, "message": f"{DATABASE_ERROR}: {str(e)}"}
 
     @staticmethod
     async def get_book_summary(book_id: int, db: AsyncSession):
@@ -164,7 +172,7 @@ class BookService:
             result = await db.execute(select(Book).where(Book.id == book_id))
             book = result.scalar_one()
         except NoResultFound:
-            raise HTTPException(status_code=404, detail="Book not found")
+            return {"data": None, "status": 404, "message": BOOK_NOT_FOUND}
         reviews_result = await db.execute(select(Review).where(Review.book_id == book_id))
         reviews = reviews_result.scalars().all()
         avg_rating = sum([review.rating for review in reviews]) / len(reviews) if reviews else 0
@@ -175,15 +183,15 @@ class BookService:
             "average_rating": avg_rating,
             "total_reviews": len(reviews),
         }
-        return {"data": data, "status": 200, "message": "Book summary retrieved successfully"}
+        return {"data": data, "status": 200, "message": BOOK_SUMMARY_RETRIEVED_SUCCESS}
 
     @staticmethod
     async def generate_summary(content: SummaryCreate):
         prompt = f"Provide a short summary for the following - {content.content}."
         summary = await InferenceHelper.call_ai_model(prompt)
         if summary is None:
-            return {"data": {"content": content.content, "summary": summary}, "status": 400, "message": "Something went wrong"}
-        return {"data": {"content": content.content, "summary": summary}, "status": 200, "message": "Summary generated successfully"}
+            return {"data": {"content": content.content, "summary": summary}, "status": 400, "message": SUMMARY_GENERATION_FAILED}
+        return {"data": {"content": content.content, "summary": summary}, "status": 200, "message": SUMMARY_GENERATED_SUCCESS}
 
     @staticmethod
     async def generate_summary_by_book_id(book_id: int, db: AsyncSession):
@@ -195,13 +203,13 @@ class BookService:
         prompt = f"Provide a short summary for book - {book.title} by {book.author}."
         summary = await InferenceHelper.call_ai_model(prompt)
         if summary is None:
-            return {"data":{"book_id": book_id, "summary": summary}, "status": 400, "message": "Something went wrong"}
-        return {"data":{"book_id": book_id, "summary": summary}, "status": 200, "message": "Summary generated successfully"}
+            return {"data":{"book_id": book_id, "summary": summary}, "status": 400, "message": SUMMARY_GENERATION_FAILED}
+        return {"data":{"book_id": book_id, "summary": summary}, "status": 200, "message": SUMMARY_GENERATED_SUCCESS}
 
     @staticmethod
     async def generate_summary_by_book_name(book_name: str):
         prompt = f"Provide a short summary for book - {book_name}."
         summary = await InferenceHelper.call_ai_model(prompt)
         if summary is None:
-            return {"data":{"book_name": book_name, "summary": summary}, "status": 400, "message": "Something went wrong"}
-        return {"data":{"book_name": book_name, "summary": summary}, "status": 200, "message": "Summary generated successfully"}
+            return {"data":{"book_name": book_name, "summary": summary}, "status": 400, "message": SUMMARY_GENERATION_FAILED}
+        return {"data":{"book_name": book_name, "summary": summary}, "status": 200, "message": SUMMARY_GENERATED_SUCCESS}
