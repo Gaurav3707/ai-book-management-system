@@ -7,7 +7,6 @@ from app.utils.helper import convert_string_to_json
 from app.utils.ai_inference import InferenceHelper
 from app.utils.jwt import fetch_user_by_request
 from pydantic import BaseModel
-from typing import List
 from app.utils.messages.bookMessages import (
     BOOK_CREATED_SUCCESS, BOOK_RETRIEVED_SUCCESS, BOOK_UPDATED_SUCCESS,
     BOOK_DELETED_SUCCESS, BOOK_NOT_FOUND, BOOKS_RETRIEVED_SUCCESS,

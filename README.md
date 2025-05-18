@@ -8,17 +8,42 @@ The Book Management System is a FastAPI-based application that allows users to m
 - Manage reviews for books.
 - Generate summaries for books using a locally running Ollama instance.
 - Fetch book recommendations using Ollama.
+- Detailed logging for all operations to track application flow and errors.**
 
 ## Project Structure
 
 - `app/`: Contains the main application code.
   - `api/`: API routes for books and user authentication.
+    - `books.py`: Handles book-related operations.
+    - `users.py`: Handles user authentication.
   - `config/`: Configuration settings for the application.
+    - `database.py`: Database connection settings.
+    - `settings.py`: Stores application settings.
   - `models/`: Database models.
+    - `book.py`: Book model.
+    - `user.py`: User model.
+  - `services.py`: Service layer for business logic.
+    - `bookServices.py`: Book-related business logic.
+    - `userServices.py`: User-related business logic.
   - `utils/`: Utility functions and dependencies.
+    - `messages`: Response messages for API endpoints.
+    - `ai_inference.py`: Functions for interacting with the Ollama instance and Open Router.
+    - `auth.py`: Functions for user authentication.
+    - `decorators.py`: Decorators for API routes.
+    - `dependencies.py`: Dependency injection for API routes.
+    - `helper.py`: Helper functions for API routes.
+    - `jwt.py`: Functions for JWT token generation and verification.
+    - `logger.py`: Functions for logging.
+- `docker`: Docker configuration for the application.
 - `migrations/`: Database migration files.
+- `model`: Ollama model is stored.
+- `templates`: HTML templates for the application.
 - `tests/`: Test suites for API endpoints.
 - `.env`: Environment variables for sensitive data.
+- `main.py`: Entry point for the application.
+- `README.md`: This file.
+- `requirements.txt`: Dependencies for the application.
+
 
 ## Prerequisites
 
@@ -203,6 +228,16 @@ The Book Management System is a FastAPI-based application that allows users to m
 - `JWT_ALGORITHM`: Algorithm used for JWT.
 - `OLLAMA_ENDPOINT`: Endpoint for the AI model to generate summaries and recommendations.
 - `AI_MODEL`: The name of the AI model pulled on Ollama.
+
+## Logging
+
+The application includes detailed logging for all operations. Logs are categorized as:
+
+- **INFO**: For successful operations like creating, updating, or deleting books.
+- **WARNING**: For invalid inputs or missing data.
+- **ERROR**: For database errors or unexpected issues.
+
+Logs help in debugging and tracking the flow of the application.
 
 ## Testing
 

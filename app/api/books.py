@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.database import get_db
+from app.config.database import get_db
 from app.services.bookServices import BookService
 from app.utils.decorators import token_required
 

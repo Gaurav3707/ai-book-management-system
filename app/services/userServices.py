@@ -1,6 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from fastapi import HTTPException
 from app.models.user import User
 from app.utils.jwt import create_access_token
 from pydantic import BaseModel

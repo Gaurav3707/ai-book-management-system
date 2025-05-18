@@ -1,0 +1,367 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Book Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    /* Custom scrollbar for code blocks */
+    pre::-webkit-scrollbar {
+      height: 8px;
+    }
+    pre::-webkit-scrollbar-thumb {
+      background-color: #94a3b8;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-white to-indigo-50 p-6 min-h-screen">
+  <div class="max-w-5xl mx-auto space-y-10">
+    <header class="text-center mb-8">
+      <h1 class="text-4xl font-extrabold text-indigo-900 drop-shadow-md flex justify-center items-center gap-3">
+        <span class="text-5xl">📚</span> Book Management System
+      </h1>
+      <p class="mt-3 max-w-3xl mx-auto text-indigo-700 text-lg leading-relaxed font-medium">
+        Manage books, reviews, and generate AI-powered summaries and recommendations with ease.
+      </p>
+    </header>
+
+    <section class="bg-white p-8 rounded-3xl shadow-xl ring-1 ring-indigo-200">
+        <h2 class="text-3xl font-semibold text-indigo-900 mb-5 flex items-center gap-3">
+          <span class="text-4xl">📝</span> Description
+        </h2>
+        The Book Management System is a FastAPI-based application that allows users to manage books and their reviews. It includes features like adding, updating, deleting books, managing reviews, and generating summaries using an external AI model. The application leverages a locally running Ollama instance to generate book summaries and provide book recommendations.
+      </section>
+
+    <section class="bg-white p-8 rounded-3xl shadow-xl ring-1 ring-indigo-200">
+      <h2 class="text-3xl font-semibold text-indigo-900 mb-5 flex items-center gap-3">
+        <span class="text-4xl">🚀</span> Features
+      </h2>
+      <ul class="list-disc list-inside text-indigo-800 text-lg space-y-2 leading-relaxed">
+        <li>Add, update, delete books.</li>
+        <li>Manage reviews for books.</li>
+        <li>Generate summaries for books using a locally running Ollama instance.</li>
+        <li>Fetch book recommendations using Ollama.</li>
+        <li>Detailed logging for all operations to track application flow and errors.</li>
+      </ul>
+    </section>
+
+    <section class="bg-white p-8 rounded-3xl shadow-xl ring-1 ring-indigo-200">
+      <h2 class="text-3xl font-semibold text-indigo-900 mb-5 flex items-center gap-3">
+        <span class="text-4xl">📒</span> Project Structure
+      </h2>
+      <ul class="list-disc list-inside text-indigo-800 text-lg space-y-2 font-mono leading-relaxed">
+        <li>
+          <button onclick="toggleVisibility('app-structure')" class="text-indigo-900 font-bold underline">app/</button>: Contains the main application code.
+          <ul id="app-structure" class="list-disc list-inside ml-6 mt-2 space-y-1 hidden">
+            <li><code>api/</code>: API routes for books and user authentication.
+              <ul class="list-disc list-inside ml-6 mt-2 space-y-1">
+                <li><code>books.py</code>: Handles book-related operations.</li>
+                <li><code>users.py</code>: Handles user authentication.</li>
+              </ul>
+            </li>
+            <li><code>config/</code>: Configuration settings for the application.
+              <ul class="list-disc list-inside ml-6 mt-2 space-y-1">
+                <li><code>database.py</code>: Database connection settings.</li>
+                <li><code>settings.py</code>: Stores application settings.</li>
+              </ul>
+            </li>
+            <li><code>models/</code>: Database models.
+              <ul class="list-disc list-inside ml-6 mt-2 space-y-1">
+                <li><code>book.py</code>: Book model.</li>
+                <li><code>user.py</code>: User model.</li>
+              </ul>
+            </li>
+            <li><code>services.py</code>: Service layer for business logic.
+              <ul class="list-disc list-inside ml-6 mt-2 space-y-1">
+                <li><code>bookServices.py</code>: Book-related business logic.</li>
+                <li><code>userServices.py</code>: User-related business logic.</li>
+              </ul>
+            </li>
+            <li><code>utils/</code>: Utility functions and dependencies.
+              <ul class="list-disc list-inside ml-6 mt-2 space-y-1">
+                <li><code>messages</code>: Response messages for API endpoints.</li>
+                <li><code>ai_inference.py</code>: Functions for interacting with the Ollama instance and Open Router.</li>
+                <li><code>auth.py</code>: Functions for user authentication.</li>
+                <li><code>decorators.py</code>: Decorators for API routes.</li>
+                <li><code>dependencies.py</code>: Dependency injection for API routes.</li>
+                <li><code>helper.py</code>: Helper functions for API routes.</li>
+                <li><code>jwt.py</code>: Functions for JWT token generation and verification.</li>
+                <li><code>logger.py</code>: Functions for logging.</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li><code>docker/</code>: Docker configuration for the application.</li>
+        <li><code>migrations/</code>: Database migration files.</li>
+        <li><code>model/</code>: Ollama model is stored.</li>
+        <li><code>templates/</code>: HTML templates for the application.</li>
+        <li><code>tests/</code>: Test suites for API endpoints.</li>
+        <li><code>.env</code>: Environment variables for sensitive data.</li>
+        <li><code>main.py</code>: Entry point for the application.</li>
+        <li><code>README.md</code>: This file.</li>
+        <li><code>requirements.txt</code>: Dependencies for the application.</li>
+      </ul>
+    </section>
+
+    <section class="bg-white p-8 rounded-3xl shadow-xl ring-1 ring-indigo-200">
+      <h2 class="text-3xl font-semibold text-indigo-900 mb-5 flex items-center gap-3">
+        <span class="text-4xl">⚙️</span> Prerequisites
+      </h2>
+      <ul class="list-disc list-inside text-indigo-800 text-lg space-y-2 leading-relaxed">
+        <li>Python 3.9+</li>
+        <li>PostgreSQL database</li>
+        <li><code>pip</code> for managing Python packages</li>
+        <li>Ollama installed and running locally</li>
+      </ul>
+    </section>
+
+    <section class="bg-white p-8 rounded-3xl shadow-xl ring-1 ring-indigo-200">
+      <h2 class="text-3xl font-semibold text-indigo-900 mb-5 flex items-center gap-3">
+        <span class="text-4xl">⚙️</span> Setup Instructions
+      </h2>
+      <ol class="list-decimal list-inside text-indigo-800 text-lg space-y-6 leading-relaxed">
+        <li>
+          Clone the repository:
+          <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">git clone &lt;repository-url&gt;
+cd book-management-system</pre>
+        </li>
+        <li>
+          Create a virtual environment and activate it:
+          <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate</pre>
+        </li>
+        <li>
+          Install dependencies:
+          <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">pip install -r requirements.txt</pre>
+        </li>
+        <li>
+          Create a <code>.env</code> file in the root directory and add the following:
+          <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">DATABASE_URL=postgresql+asyncpg://&lt;username&gt;:&lt;password&gt;@&lt;host&gt;/&lt;database&gt;
+JWT_SECRET=your_jwt_secret
+JWT_ALGORITHM=HS256
+OLLAMA_ENDPOINT=http://localhost:11434/api/generate
+AI_MODEL=llama3.2:1b</pre>
+        </li>
+        <li>
+          Apply database migrations:
+          <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">alembic upgrade head</pre>
+        </li>
+        <li>
+          Download and run the AI model using Ollama:
+          <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">curl -fsSL https://ollama.com/install.sh | sh
+ollama run llama3.2:1b</pre>
+        </li>
+        <li>
+          Start the application:
+          <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">uvicorn app.main:app --reload</pre>
+        </li>
+        <li>
+          Access the API documentation at:
+          <ul class="list-disc list-inside ml-6 mt-2 space-y-1">
+            <li>Swagger UI: <code class="bg-indigo-100 px-1 rounded">http://127.0.0.1:8000/docs</code></li>
+            <li>ReDoc: <code class="bg-indigo-100 px-1 rounded">http://127.0.0.1:8000/redoc</code></li>
+          </ul>
+        </li>
+      </ol>
+    </section>
+
+    <section class="bg-white p-8 rounded-3xl shadow-xl ring-1 ring-indigo-200 overflow-x-auto">
+      <h2 class="text-3xl font-semibold text-indigo-900 mb-6">API Endpoints</h2>
+
+      <h3 class="text-2xl font-semibold text-indigo-900 mb-4">User Authentication</h3>
+      <ul class="list-disc list-inside text-indigo-800 text-lg space-y-6">
+        <li>
+          <strong class="text-indigo-900">Register User</strong><br />
+          <code class="bg-indigo-100 px-2 py-1 rounded text-indigo-900">POST /auth/register</code><br />
+          Request Body:
+          <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">{
+  "username": "string",
+  "email": "string",
+  "password": "string"
+}</pre>
+        </li>
+        <li>
+          <strong class="text-indigo-900">Login User</strong><br />
+          <code class="bg-indigo-100 px-2 py-1 rounded text-indigo-900">POST /auth/login</code><br />
+          Request Body:
+          <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">{
+  "username": "string",
+  "password": "string"
+}</pre>
+          Response:
+          <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">{
+  "access_token": "string",
+  "token_type": "bearer"
+}</pre>
+        </li>
+        <li>
+          <strong class="text-indigo-900">Get User Profile</strong><br />
+          <code class="bg-indigo-100 px-2 py-1 rounded text-indigo-900">GET /auth/profile</code><br />
+          Headers: <code class="bg-indigo-100 px-1 rounded">Authorization: Bearer &lt;access_token&gt;</code><br />
+          Response:
+          <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">{
+  "username": "string",
+  "role": "string"
+}</pre>
+        </li>
+      </ul>
+
+      <h3 class="text-2xl font-semibold text-indigo-900 mt-10 mb-4">Books</h3>
+      <ul class="list-disc list-inside text-indigo-800 text-lg space-y-6">
+        <li>
+          <strong class="text-indigo-900">Create a Book</strong><br />
+          <code class="bg-indigo-100 px-2 py-1 rounded text-indigo-900">POST /api/books/</code><br />
+          Request Body:
+          <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">{
+  "title": "Book Title",
+  "author": "Author Name",
+  "genre": "Genre",
+  "year_published": 2023,
+  "summary": "Book summary."
+}</pre>
+        </li>
+        <li>
+          <strong class="text-indigo-900">List All Books</strong><br />
+          <code class="bg-indigo-100 px-2 py-1 rounded text-indigo-900">GET /api/books/</code><br />
+          Headers: <code class="bg-indigo-100 px-1 rounded">Authorization: Bearer &lt;access_token&gt;</code>
+        </li>
+        <li>
+          <strong class="text-indigo-900">Get a Book by ID</strong><br />
+          <code class="bg-indigo-100 px-2 py-1 rounded text-indigo-900">GET /api/books/{book_id}</code><br />
+          Headers: <code class="bg-indigo-100 px-1 rounded">Authorization: Bearer &lt;access_token&gt;</code>
+        </li>
+        <li>
+          <strong class="text-indigo-900">Update a Book</strong><br />
+          <code class="bg-indigo-100 px-2 py-1 rounded text-indigo-900">PUT /api/books/{book_id}</code><br />
+          Request Body: Same as "Create a Book".<br />
+          Headers: <code class="bg-indigo-100 px-1 rounded">Authorization: Bearer &lt;access_token&gt;</code>
+        </li>
+        <li>
+          <strong class="text-indigo-900">Delete a Book</strong><br />
+          <code class="bg-indigo-100 px-2 py-1 rounded text-indigo-900">DELETE /api/books/{book_id}</code><br />
+          Headers: <code class="bg-indigo-100 px-1 rounded">Authorization: Bearer &lt;access_token&gt;</code>
+        </li>
+      </ul>
+
+      <h3 class="text-2xl font-semibold text-indigo-900 mt-10 mb-4">Reviews</h3>
+      <ul class="list-disc list-inside text-indigo-800 text-lg space-y-6">
+        <li>
+          <strong class="text-indigo-900">Add a Review</strong><br />
+          <code class="bg-indigo-100 px-2 py-1 rounded text-indigo-900">POST /api/books/{book_id}/reviews</code><br />
+          Request Body:
+          <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">{
+  "review_text": "Great book!",
+  "rating": 5
+}</pre>
+          Headers: <code class="bg-indigo-100 px-1 rounded">Authorization: Bearer &lt;access_token&gt;</code>
+        </li>
+        <li>
+          <strong class="text-indigo-900">List Reviews for a Book</strong><br />
+          <code class="bg-indigo-100 px-2 py-1 rounded text-indigo-900">GET /api/books/{book_id}/reviews</code><br />
+          Headers: <code class="bg-indigo-100 px-1 rounded">Authorization: Bearer &lt;access_token&gt;</code>
+        </li>
+      </ul>
+
+      <h3 class="text-2xl font-semibold text-indigo-900 mt-10 mb-4">Summaries</h3>
+      <ul class="list-disc list-inside text-indigo-800 text-lg space-y-6">
+        <li>
+          <strong class="text-indigo-900">Generate Summary for Custom Content</strong><br />
+          <code class="bg-indigo-100 px-2 py-1 rounded text-indigo-900">POST /api/books/generate-summary</code><br />
+          Request Body:
+          <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">{
+  "content": "Custom content to summarize."
+}</pre>
+          Headers: <code class="bg-indigo-100 px-1 rounded">Authorization: Bearer &lt;access_token&gt;</code>
+        </li>
+        <li>
+          <strong class="text-indigo-900">Generate Summary for a Book by ID</strong><br />
+          <code class="bg-indigo-100 px-2 py-1 rounded text-indigo-900">POST /api/books/generate-summary-by-book-id/{book_id}</code><br />
+          Headers: <code class="bg-indigo-100 px-1 rounded">Authorization: Bearer &lt;access_token&gt;</code>
+        </li>
+        <li>
+          <strong class="text-indigo-900">Generate Summary for a Book by Name</strong><br />
+          <code class="bg-indigo-100 px-2 py-1 rounded text-indigo-900">GET /api/books/generate-summary-by-book-name/{book_name}</code><br />
+          Headers: <code class="bg-indigo-100 px-1 rounded">Authorization: Bearer &lt;access_token&gt;</code>
+        </li>
+        <li>
+          <strong class="text-indigo-900">Get Book Summary</strong><br />
+          <code class="bg-indigo-100 px-2 py-1 rounded text-indigo-900">GET /api/books/{book_id}/summary</code><br />
+          Headers: <code class="bg-indigo-100 px-1 rounded">Authorization: Bearer &lt;access_token&gt;</code>
+        </li>
+      </ul>
+
+      <h3 class="text-2xl font-semibold text-indigo-900 mt-10 mb-4">Recommendations</h3>
+      <ul class="list-disc list-inside text-indigo-800 text-lg space-y-6">
+        <li>
+          <strong class="text-indigo-900">Get Book Recommendations</strong><br />
+          <code class="bg-indigo-100 px-2 py-1 rounded text-indigo-900">GET /api/books/recommendations</code><br />
+          Headers: <code class="bg-indigo-100 px-1 rounded">Authorization: Bearer &lt;access_token&gt;</code>
+        </li>
+      </ul>
+    </section>
+
+    <section class="bg-white p-8 rounded-3xl shadow-xl ring-1 ring-indigo-200">
+      <h2 class="text-3xl font-semibold text-indigo-900 mb-5">Environment Variables</h2>
+      <ul class="list-disc list-inside text-indigo-800 text-lg space-y-3 font-mono leading-relaxed">
+        <li><code>DATABASE_URL</code>: Connection string for the PostgreSQL database.</li>
+        <li><code>JWT_SECRET</code>: Secret key for JWT authentication.</li>
+        <li><code>JWT_ALGORITHM</code>: Algorithm used for JWT.</li>
+        <li><code>OLLAMA_ENDPOINT</code>: Endpoint for the AI model to generate summaries and recommendations.</li>
+        <li><code>AI_MODEL</code>: The name of the AI model pulled on Ollama.</li>
+      </ul>
+    </section>
+
+    <section class="bg-white p-8 rounded-3xl shadow-xl ring-1 ring-indigo-200">
+      <h2 class="text-3xl font-semibold text-indigo-900 mb-5">Logging</h2>
+      <p class="text-indigo-800 text-lg leading-relaxed mb-5 max-w-4xl">
+        The application includes detailed logging for all operations. Logs are categorized as:
+      </p>
+      <ul class="list-disc list-inside text-indigo-800 text-lg space-y-3 font-mono max-w-4xl">
+        <li><strong>INFO</strong>: For successful operations like creating, updating, or deleting books.</li>
+        <li><strong>WARNING</strong>: For invalid inputs or missing data.</li>
+        <li><strong>ERROR</strong>: For database errors or unexpected issues.</li>
+      </ul>
+      <p class="text-indigo-800 text-lg leading-relaxed mt-5 max-w-4xl">
+        Logs help in debugging and tracking the flow of the application.
+      </p>
+    </section>
+
+    <section class="bg-white p-8 rounded-3xl shadow-xl ring-1 ring-indigo-200 mb-12">
+      <h2 class="text-3xl font-semibold text-indigo-900 mb-5">Testing</h2>
+      <p class="text-indigo-800 text-lg leading-relaxed mb-5 max-w-4xl">
+        The application includes a comprehensive test suite using <code class="bg-indigo-100 px-1 rounded">pytest</code> and <code class="bg-indigo-100 px-1 rounded">pytest-asyncio</code>. Tests cover:
+      </p>
+      <ul class="list-disc list-inside text-indigo-800 text-lg space-y-3 max-w-4xl">
+        <li>User authentication (registration, login, profile access).</li>
+        <li>Book management (creation, retrieval, update, deletion).</li>
+        <li>Review management (adding and listing reviews).</li>
+        <li>Summary generation.</li>
+        <li>Book recommendations.</li>
+      </ul>
+      <p class="text-indigo-800 text-lg leading-relaxed mt-5 max-w-4xl">
+        To run the tests:
+      </p>
+      <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner max-w-4xl mx-auto">pytest</pre>
+      <p class="text-indigo-800 text-lg leading-relaxed mt-5 max-w-4xl">
+        Ensure that the test database is properly configured and that all necessary environment variables are set before running the tests.
+      </p>
+    </section>
+  </div>
+
+  <script>
+    function toggleVisibility(id) {
+      const element = document.getElementById(id);
+      if (element.classList.contains('hidden')) {
+        element.classList.remove('hidden');
+      } else {
+        element.classList.add('hidden');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -6,8 +6,7 @@ import pytest_asyncio
 from httpx import AsyncClient
 from httpx._transports.asgi import ASGITransport
 from main import app
-from app.models.database import get_db  # Import get_db for dependency override
-from fastapi.testclient import TestClient
+from app.config.database import get_db  # Import get_db for dependency override
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from app.models.book import Base
@@ -92,7 +91,6 @@ async def test_create_book(client):
     assert response.status_code == 201
     assert response.json()['data']["title"] == "Harry Potter"
     created_book_id = response.json()['data']["id"]  # Store the created book's ID
-    print(f"Created book ID: {created_book_id}")  # Debug statement
 
 @pytest.mark.asyncio
 async def test_list_books(client):

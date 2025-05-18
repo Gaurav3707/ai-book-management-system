@@ -2,14 +2,14 @@ import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest
-from app.models.database import get_db
+from app.config.database import get_db
 import pytest_asyncio
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from httpx import AsyncClient
 from main import app
 from httpx._transports.asgi import ASGITransport
-from app.models.database import init_db
+from app.config.database import init_db
 from app.models.book import Base
 from app.utils.logger import get_logger
 

@@ -4,7 +4,7 @@ from jose import JWTError, jwt
 from app.config.settings import settings
 from app.models import user as user_model
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.database import get_db
+from app.config.database import get_db
 from typing import Optional
 
 http_bearer = HTTPBearer()

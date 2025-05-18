@@ -1,14 +1,15 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
 from app.utils.jwt import verify_access_token
 from app.api.books import router as book_router
-from app.models.database import init_db
+from app.config.database import init_db
 from app.api.user import router as auth_router
-import asyncio
 from contextlib import asynccontextmanager
 from app.utils.logger import get_logger
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 http_bearer = HTTPBearer()
 
@@ -46,6 +47,9 @@ app = FastAPI(
     },
     lifespan=lifespan
 )
+
+templates = Jinja2Templates(directory="templates")
+
 
 # CORS configuration
 origins = [
@@ -90,10 +94,18 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
-@app.get("/", include_in_schema=False)
-async def root():
+@app.get("/", include_in_schema=False, response_class=HTMLResponse)
+async def root(request: Request):
     logger.info("Root endpoint accessed.")
-    return {"message": "Welcome to the Book Management System"}
+    try:
+        return templates.TemplateResponse(
+        "index.html", 
+        {"request": request}
+    )
+
+    except Exception as e:
+        logger.error(f"Error reading README.html: {e}")
+        return {"message": "Error loading the README page"}
 
 app.include_router(book_router, prefix="/api/books", tags=["Books"])
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
