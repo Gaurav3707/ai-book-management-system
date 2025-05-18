@@ -26,7 +26,7 @@ async def global_auth_dependency(credentials: HTTPAuthorizationCredentials = Dep
 async def lifespan(app: FastAPI):
     logger.info("Starting application...")
     try:
-        # await init_db()
+        await init_db()
         logger.info("Database initialized.")
     except Exception as e:
         logger.error(f"Error during database initialization: {e}")
@@ -102,7 +102,6 @@ async def root(request: Request):
         "index.html", 
         {"request": request}
     )
-
     except Exception as e:
         logger.error(f"Error reading README.html: {e}")
         return {"message": "Error loading the README page"}

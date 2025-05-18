@@ -13,7 +13,8 @@ from app.utils.messages.bookMessages import (
     RECOMMENDATIONS_RETRIEVED_SUCCESS, REVIEWS_RETRIEVED_SUCCESS,
     REVIEW_ADDED_SUCCESS, BOOK_SUMMARY_RETRIEVED_SUCCESS,
     SUMMARY_GENERATED_SUCCESS, SUMMARY_GENERATION_FAILED,
-    INVALID_REVIEW_INPUT, INVALID_BOOK_INPUT, DATABASE_ERROR
+    INVALID_REVIEW_INPUT, INVALID_BOOK_INPUT, DATABASE_ERROR, 
+    DUPLICATE_BOOK, DUPLICATE_REVIEW
 )
 from app.utils.logger import get_logger
 
@@ -44,7 +45,7 @@ class BookService:
             # Check for duplicate book title and author
             if await check_duplicate_book(book.title, book.author, db):
                 logger.warning(f"Duplicate book found: {book.title} by {book.author}")
-                return {"data": None, "status": 400, "message": "Book with the same title and author already exists."}
+                return {"data": None, "status": 400, "message": DUPLICATE_BOOK}
             
             new_book = Book(**book.model_dump())
             db.add(new_book)
@@ -135,7 +136,7 @@ class BookService:
             # Check for duplicate book title and author
             if await check_duplicate_book(book.title, book.author, db, exclude_book_id=book_id):
                 logger.warning(f"Duplicate book found: {book.title} by {book.author}")
-                return {"data": None, "status": 400, "message": "Book with the same title and author already exists."}
+                return {"data": None, "status": 400, "message": DUPLICATE_BOOK}
             
             result = await db.execute(select(Book).where(Book.id == book_id))
             existing_book = result.scalar_one()
@@ -191,6 +192,15 @@ class BookService:
         try:
             user = fetch_user_by_request(request)
             logger.debug(f"User fetched from request: {user}")
+            
+            # Check if the user has already reviewed this book
+            existing_review = await db.execute(
+                select(Review).where(Review.book_id == book_id, Review.user_id == user['user_id'])
+            )
+            if existing_review.scalar():
+                logger.warning(f"User {user['user_id']} has already reviewed book ID: {book_id}")
+                return {"data": None, "status": 400, "message": DUPLICATE_REVIEW}
+            
             review_data = review.model_dump()
             review_data['user_id'] = user['user_id']
             new_review = Review(book_id=book_id, **review_data)

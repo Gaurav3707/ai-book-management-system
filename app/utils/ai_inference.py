@@ -49,5 +49,9 @@ class InferenceHelper:
         })
         async with httpx.AsyncClient() as client:
             response = await client.post(settings.HOSTED_MODEL_ENDPOINT, headers=headers, data=data)
+            if response.status_code == 429:  # HTTP 429 Too Many Requests
+                logger.error("Rate limit exceeded for hosted AI model.")
+                error_details = response.json().get("error", {}).get("message", "Rate limit exceeded.")
+                return {"error": "Rate limit exceeded", "details": error_details}
             logger.debug(f"Together AI response: {response.text}")
             return response.json()['choices'][0]['message']['content']

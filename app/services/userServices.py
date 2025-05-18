@@ -5,7 +5,8 @@ from app.utils.jwt import create_access_token
 from pydantic import BaseModel
 from app.utils.messages.userMessages import (
     USER_REGISTERED_SUCCESS, USER_LOGIN_SUCCESS, INVALID_CREDENTIALS,
-    USERNAME_ALREADY_REGISTERED, USER_PROFILE_RETRIEVED_SUCCESS
+    USERNAME_ALREADY_REGISTERED, USER_PROFILE_RETRIEVED_SUCCESS, 
+    EMAIL_ALREADY_REGISTERED
 )
 from app.utils.logger import get_logger
 
@@ -34,7 +35,7 @@ class UserService:
         db_email = result.scalars().first()
         if db_email:
             logger.warning(f"Email already registered: {user.email}")
-            return {"data": None, "status": 400, "message": "Email is already registered"}
+            return {"data": None, "status": 400, "message": EMAIL_ALREADY_REGISTERED}
 
         try:
             new_user = User(username=user.username, email=user.email, password=user.password)
