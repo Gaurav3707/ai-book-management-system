@@ -88,23 +88,18 @@ Access the production version of the application here: [Book Management System](
    HOSTED_MODEL_ENDPOINT=//optional if you want to use hosted ai provider instead of locally deployed model
    ```
 
-5. Apply database migrations:
-   ```bash
-   alembic upgrade head
-   ```
-
-6. Download and run the AI model using Ollama:
+5. Download and run the AI model using Ollama: (Optional if you intend to use a hosted AI model. If using a hosted model, ensure you provide the required API key and endpoint in the `.env` file.)
    ```bash
    curl -fsSL https://ollama.com/install.sh | sh
    ollama run llama3.2:1b
    ```
 
-7. Start the application:
+6. Start the application:
    ```bash
    uvicorn app.main:app --reload
    ```
 
-8. Access the API documentation at:
+7. Access the API documentation at:
    - Swagger UI: `http://127.0.0.1:8000/docs`
    - ReDoc: `http://127.0.0.1:8000/redoc`
 
