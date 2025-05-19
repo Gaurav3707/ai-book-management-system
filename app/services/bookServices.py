@@ -1,7 +1,9 @@
+import tenacity
+from tenacity import retry, stop_after_attempt, wait_exponential
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.exc import NoResultFound, SQLAlchemyError
-from fastapi import HTTPException, Request
+from fastapi import Request
 from app.models.book import Book, Review
 from app.utils.helper import convert_string_to_json, check_duplicate_book
 from app.utils.ai_inference import InferenceHelper
@@ -172,7 +174,7 @@ class BookService:
             return {"data": None, "status": 404, "message": BOOK_NOT_FOUND}
         except SQLAlchemyError as e:
             logger.error(f"Database error while fetching book for review: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+            return {"data": None, "status": 500, "message": f"{DATABASE_ERROR}: {str(e)}"}
         try:
             user = fetch_user_by_request(request)
             logger.debug(f"User fetched from request: {user}")
@@ -253,22 +255,52 @@ class BookService:
             logger.info(f"Book retrieved successfully: {book}")
         except NoResultFound:
             logger.warning(f"Book not found with ID: {book_id}")
-            raise HTTPException(status_code=404, detail="Book not found")
+            return {"data": None, "status": 404, "message": BOOK_NOT_FOUND}
         prompt = LLMInstructions.get_summary_book_id_prompt(book.title, book.author)
-        summary = await InferenceHelper.call_ai_model(prompt)
-        if summary is None:
-            logger.warning(SUMMARY_GENERATION_FAILED)
-            return {"data":{"book_id": book_id, "summary": summary}, "status": 400, "message": SUMMARY_GENERATION_FAILED}
-        logger.info(SUMMARY_GENERATED_SUCCESS)
-        return {"data":{"book_id": book_id, "summary": summary}, "status": 200, "message": SUMMARY_GENERATED_SUCCESS}
+        return await BookService._generate_summary(prompt, "book_id", identifier=book_id)
 
     @staticmethod
     async def generate_summary_by_book_name(book_name: str):
-        logger.info(f"Generating summary for book name: {book_name}")
         prompt = LLMInstructions.get_summary_book_name_prompt(book_name)
-        summary = await InferenceHelper.call_ai_model(prompt)
-        if summary is None:
-            logger.warning(SUMMARY_GENERATION_FAILED)
-            return {"data":{"book_name": book_name, "summary": summary}, "status": 400, "message": SUMMARY_GENERATION_FAILED}
-        logger.info(SUMMARY_GENERATED_SUCCESS)
-        return {"data":{"book_name": book_name, "summary": summary}, "status": 200, "message": SUMMARY_GENERATED_SUCCESS}
+        return await BookService._generate_summary(prompt, "book_name", identifier=book_name)
+    
+    # helper functions
+
+    @staticmethod
+    async def _generate_summary(prompt: str, identifier_type: str, identifier: str = None):
+        """
+        Generates a summary using the AI model.
+
+        Args:
+            prompt (str): The prompt to send to the AI model.
+            identifier_type (str): Type of identifier ('book_id' or 'book_name').
+            identifier (str, optional): The identifier value. Defaults to None.
+
+        Returns:
+            dict: A dictionary containing the summary data and status.
+        """
+        logger.info(f"Generating summary for {identifier_type}: {identifier}")
+        try:
+            summary = await BookService._call_ai_model_with_retry(prompt)
+            if summary is None:
+                logger.warning(SUMMARY_GENERATION_FAILED)
+                return {"data": {identifier_type: identifier, "summary": summary}, "status": 400, "message": SUMMARY_GENERATION_FAILED}
+
+            logger.info(SUMMARY_GENERATED_SUCCESS)
+            return {"data": {identifier_type: identifier, "summary": summary}, "status": 200, "message": SUMMARY_GENERATED_SUCCESS}
+        except tenacity.RetryError as e:
+            logger.error(f"Failed to generate summary after multiple retries: {e}")
+            return {"data": {identifier_type: identifier, "summary": None}, "status": 500, "message": f"Failed to generate summary after multiple retries: {e}"}
+        except Exception as e:
+            logger.error(f"Error generating summary: {e}")
+            return {"data": {identifier_type: identifier, "summary": None}, "status": 500, "message": f"Error generating summary: {e}"}
+
+    @staticmethod
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+    async def _call_ai_model_with_retry(prompt: str):
+        """Call the AI model with retry mechanism."""
+        try:
+            return await InferenceHelper.call_ai_model(prompt)
+        except Exception as e:
+            logger.error(f"AI model call failed: {e}")
+            raise
