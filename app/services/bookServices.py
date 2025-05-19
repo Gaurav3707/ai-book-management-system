@@ -17,6 +17,7 @@ from app.utils.messages.bookMessages import (
     DUPLICATE_BOOK, DUPLICATE_REVIEW, NO_AI_CONTENT
 )
 from app.utils.logger import get_logger
+from app.utils.instructions import LLMInstructions
 
 logger = get_logger(__name__)
 
@@ -81,27 +82,7 @@ class BookService:
             highly_rated_books = result.scalars().all()
             logger.debug(f"Highly rated books by user: {highly_rated_books}")
             books_for_prompt = ", ".join([f"{book.title} by {book.author}" for book in highly_rated_books]) if highly_rated_books else "none"
-            prompt = f"""<Instruction>
-            <prompt>
-                Based on the user's highly rated books: {books_for_prompt}, provide a list of 5 book recommendations with their titles and authors.
-            </prompt>
-            <responseFormat>
-                <format>JSON</format>
-                <guidelines>
-                    Ensure the output is in JSON format and follows this structure:
-                    {{
-                        "recommendations": [
-                            {{
-                                "title": "string",
-                                "author": "string",
-                                "genre": "string",
-                                "year_published: "string",
-                            }}
-                        ]
-                    }}
-                </guidelines>
-            </responseFormat>
-            </Instruction>"""
+            prompt = LLMInstructions.get_recommendation_prompt(books_for_prompt)
             content = await InferenceHelper.call_ai_model(prompt)
             if content is None:
                 logger.warning("AI model returned no content.")
@@ -255,7 +236,7 @@ class BookService:
     @staticmethod
     async def generate_summary(content: SummaryCreate):
         logger.info("Generating summary for provided content.")
-        prompt = f"Provide a short summary for the following - {content.content}."
+        prompt = LLMInstructions.get_content_summary_prompt(content.content)
         summary = await InferenceHelper.call_ai_model(prompt)
         if summary is None:
             logger.warning(SUMMARY_GENERATION_FAILED)
@@ -273,7 +254,7 @@ class BookService:
         except NoResultFound:
             logger.warning(f"Book not found with ID: {book_id}")
             raise HTTPException(status_code=404, detail="Book not found")
-        prompt = f"Provide a short summary for book - {book.title} by {book.author}."
+        prompt = LLMInstructions.get_summary_book_id_prompt(book.title, book.author)
         summary = await InferenceHelper.call_ai_model(prompt)
         if summary is None:
             logger.warning(SUMMARY_GENERATION_FAILED)
@@ -284,7 +265,7 @@ class BookService:
     @staticmethod
     async def generate_summary_by_book_name(book_name: str):
         logger.info(f"Generating summary for book name: {book_name}")
-        prompt = f"Provide a short summary for book - {book_name}."
+        prompt = LLMInstructions.get_summary_book_name_prompt(book_name)
         summary = await InferenceHelper.call_ai_model(prompt)
         if summary is None:
             logger.warning(SUMMARY_GENERATION_FAILED)
