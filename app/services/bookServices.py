@@ -119,14 +119,14 @@ class BookService:
             logger.warning("Invalid book input: Missing title or author.")
             return {"data": None, "status": 400, "message": INVALID_BOOK_INPUT}
         try:
+            result = await db.execute(select(Book).where(Book.id == book_id))
+            existing_book = result.scalar_one()
+            logger.debug(f"Existing book data: {existing_book}")
             # Check for duplicate book title and author
             if await check_duplicate_book(book.title, book.author, db, exclude_book_id=book_id):
                 logger.warning(f"Duplicate book found: {book.title} by {book.author}")
                 return {"data": None, "status": 400, "message": DUPLICATE_BOOK}
-            
-            result = await db.execute(select(Book).where(Book.id == book_id))
-            existing_book = result.scalar_one()
-            logger.debug(f"Existing book data: {existing_book}")
+
             for key, value in book.model_dump().items():
                 setattr(existing_book, key, value)
             db.add(existing_book)
@@ -168,7 +168,9 @@ class BookService:
             logger.warning("Invalid review input: Missing review text or rating out of range.")
             return {"data": None, "status": 400, "message": INVALID_REVIEW_INPUT}
         try:
-            await db.execute(select(Book).where(Book.id == book_id))
+            book_obj = await db.execute(select(Book).where(Book.id == book_id))
+            book_obj.scalar_one()
+            logger.debug(f"Book object for review: {book_obj}")
         except NoResultFound:
             logger.warning(f"Book not found with ID: {book_id}")
             return {"data": None, "status": 404, "message": BOOK_NOT_FOUND}

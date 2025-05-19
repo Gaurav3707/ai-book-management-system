@@ -48,6 +48,24 @@ async def client(db_session):
 created_book_id = None
 valid_token = None
 
+# Define book details for creating a book
+create_book_data = {
+    "title": "Harry Potter",
+    "author": "JK Rowling",
+    "genre": "Fiction",
+    "year_published": 1998,
+    "summary": "A test book summary."
+}
+
+# Define book details for updating a book
+update_book_data = {
+    "title": "Harry Potter and the Goblet of Fire",
+    "author": "Updated Author",
+    "genre": "Non-Fiction",
+    "year_published": 1998,
+    "summary": "Updated summary."
+}
+
 @pytest.mark.asyncio
 async def test_user_onboarding(client):
     global valid_token  # Declare the global variable
@@ -79,17 +97,11 @@ async def test_create_book(client):
     global created_book_id  # Declare the variable as global to modify it
     response = await client.post(
         "/api/books/",
-        json={
-            "title": "Harry Potter",
-            "author": "JK Rowling",
-            "genre": "Fiction",
-            "year_published": 1998,
-            "summary": "A test book summary."
-        },
+        json=create_book_data,
         headers={"Authorization": f"Bearer {valid_token}"}
     )
     assert response.status_code == 201
-    assert response.json()['data']["title"] == "Harry Potter"
+    assert response.json()['data']["title"] == create_book_data["title"]
     created_book_id = response.json()['data']["id"]  # Store the created book's ID
 
 @pytest.mark.asyncio
@@ -109,17 +121,11 @@ async def test_get_book(client):
 async def test_update_book(client):
     response = await client.put(
         "/api/books/1",
-        json={
-            "title": "Harry Potter and the Goblet of Fire",
-            "author": "Updated Author",
-            "genre": "Non-Fiction",
-            "year_published": 1998,
-            "summary": "Updated summary."
-        },
+        json=update_book_data,
         headers={"Authorization": f"Bearer {valid_token}"}
     )
     assert response.status_code == 200
-    assert response.json()['data']["title"] == "Harry Potter and the Goblet of Fire"
+    assert response.json()['data']["title"] == update_book_data["title"]
 
 
 @pytest.mark.asyncio
@@ -193,6 +199,8 @@ async def test_generate_summary_by_book_name(client):
     )
     assert response.status_code == 200
     assert "summary" in response.json()['data']
+    print(response.json())
+    print("=============3434===============")
     assert response.json()['data']["summary"] != None
 
 
@@ -205,6 +213,81 @@ async def test_get_recommendations(client):
     assert len(response.json()['data']["recommendations"]) > 0
 
 
+# ===================== EDGE CASES =====================
+from app.utils.messages import bookMessages
+
+@pytest.mark.asyncio
+async def test_create_book_duplicate(client):
+    response = await client.post(
+        "/api/books/",
+        json=update_book_data,
+        headers={"Authorization": f"Bearer {valid_token}"}
+    )
+    assert response.json()['message'] == bookMessages.DUPLICATE_BOOK
+
+@pytest.mark.asyncio
+async def test_create_book_invalid_input(client):
+    response = await client.post(
+        "/api/books/",
+        json={
+            "genre": "Fiction",
+            "year_published": 1998,
+            "summary": "A test book summary."
+        },
+        headers={"Authorization": f"Bearer {valid_token}"}
+        
+    )
+    
+    assert response.status_code == 422
+
+@pytest.mark.asyncio
+async def test_get_book_invalid_id(client):
+    response = await client.get("/api/books/9999", headers={"Authorization": f"Bearer {valid_token}"})
+    assert response.json()['message'] == bookMessages.BOOK_NOT_FOUND
+
+@pytest.mark.asyncio
+async def test_update_book_invalid_id(client):
+    response = await client.put(
+        "/api/books/9999",
+        json=update_book_data,
+        headers={"Authorization": f"Bearer {valid_token}"}
+    )
+    print(response.json())
+    print("=================================2323")
+    assert response.json()['message'] == bookMessages.BOOK_NOT_FOUND
+
+@pytest.mark.asyncio
+async def test_delete_book_invalid_id(client):
+    response = await client.delete("/api/books/9999", headers={"Authorization": f"Bearer {valid_token}"})
+    assert response.json()['message'] == bookMessages.BOOK_NOT_FOUND
+
+@pytest.mark.asyncio
+async def test_add_review_invalid_input(client):
+    response = await client.post(
+        f"/api/books/{created_book_id}/reviews",
+        json={"review_text": "Great book!", "rating": 6},
+        headers={"Authorization": f"Bearer {valid_token}"}
+    )
+    assert response.json()['message'] == bookMessages.INVALID_REVIEW_INPUT
+
+@pytest.mark.asyncio
+async def test_add_review_invalid_book_id(client):
+    response = await client.post(
+        "/api/books/9999/reviews",
+        json={"review_text": "Great book!", "rating": 5},
+        headers={"Authorization": f"Bearer {valid_token}"}
+    )
+    assert response.json()['message'] == bookMessages.BOOK_NOT_FOUND
+
+@pytest.mark.asyncio
+async def test_generate_summary_by_book_id_invalid_id(client):
+    response = await client.post(
+        "/api/books/generate-summary-by-book-id/9999",
+        headers={"Authorization": f"Bearer {valid_token}"}
+    )
+    assert response.json()['message'] == bookMessages.BOOK_NOT_FOUND
+
+# Intentionally keeping delete book test at last to ensure the book exists
 @pytest.mark.asyncio
 async def test_delete_book(client):
     global created_book_id

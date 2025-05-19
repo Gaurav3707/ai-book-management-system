@@ -12,6 +12,11 @@ from httpx._transports.asgi import ASGITransport
 from app.config.database import init_db
 from app.models.book import Base
 from app.utils.logger import get_logger
+from app.utils.messages.userMessages import (
+    USER_REGISTERED_SUCCESS, USER_LOGIN_SUCCESS, INVALID_CREDENTIALS,
+    USERNAME_ALREADY_REGISTERED, EMAIL_ALREADY_REGISTERED,
+    USER_PROFILE_RETRIEVED_SUCCESS
+)
 
 logger = get_logger(__name__)
 
@@ -69,7 +74,33 @@ async def test_register_user(client):
         }
     )
     assert response.status_code == 200
-    assert response.json()["message"] == "User registered successfully"
+    assert response.json()["message"] == USER_REGISTERED_SUCCESS
+
+@pytest.mark.asyncio
+async def test_register_user_existing_username(client):
+    logger.info("Testing user registration with existing username.")
+    response = await client.post(
+        "/auth/register",
+        json={
+            "username": "testuser",
+            "email": "newemail@example.com",
+            "password": "password123"
+        }
+    )
+    assert response.json()["message"] == USERNAME_ALREADY_REGISTERED
+
+@pytest.mark.asyncio
+async def test_register_user_existing_email(client):
+    logger.info("Testing user registration with existing email.")
+    response = await client.post(
+        "/auth/register",
+        json={
+            "username": "newuser",
+            "email": "testuser@example.com",
+            "password": "password123"
+        }
+    )
+    assert response.json()["message"] == EMAIL_ALREADY_REGISTERED
 
 @pytest.mark.asyncio
 async def test_login_user(client):
@@ -84,7 +115,20 @@ async def test_login_user(client):
     )
     assert response.status_code == 200
     assert "access_token" in response.json()["data"]
+    assert response.json()["message"] == USER_LOGIN_SUCCESS
     access_token = response.json()["data"]["access_token"]  # Store the token
+
+@pytest.mark.asyncio
+async def test_login_user_invalid_credentials(client):
+    logger.info("Testing user login with invalid credentials.")
+    response = await client.post(
+        "/auth/login",
+        json={
+            "username": "testuser",
+            "password": "wrongpassword"
+        }
+    )
+    assert response.json()["message"] == INVALID_CREDENTIALS
 
 @pytest.mark.asyncio
 async def test_get_profile(client):
@@ -93,3 +137,10 @@ async def test_get_profile(client):
     response = await client.get("/auth/profile", headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
     assert "username" in response.json()["data"]
+    assert response.json()["message"] == USER_PROFILE_RETRIEVED_SUCCESS
+
+@pytest.mark.asyncio
+async def test_get_profile_invalid_token(client):
+    logger.info("Testing get profile with invalid token.")
+    response = await client.get("/auth/profile", headers={"Authorization": "Bearer invalid_token"})
+    assert response.status_code == 401
