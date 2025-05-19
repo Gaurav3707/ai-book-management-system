@@ -1,12 +1,12 @@
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+from test_data import test_data 
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
 from httpx._transports.asgi import ASGITransport
 from main import app
-from app.config.database import get_db  # Import get_db for dependency override
+from app.config.database import get_db  
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from app.models.book import Base
@@ -48,44 +48,23 @@ async def client(db_session):
 created_book_id = None
 valid_token = None
 
-# Define book details for creating a book
-create_book_data = {
-    "title": "Harry Potter",
-    "author": "JK Rowling",
-    "genre": "Fiction",
-    "year_published": 1998,
-    "summary": "A test book summary."
-}
-
-# Define book details for updating a book
-update_book_data = {
-    "title": "Harry Potter and the Goblet of Fire",
-    "author": "Updated Author",
-    "genre": "Non-Fiction",
-    "year_published": 1998,
-    "summary": "Updated summary."
-}
+create_book_data = test_data["create_book_data"]
+update_book_data = test_data["update_book_data"]
+create_review_data = test_data["create_review_data"]
 
 @pytest.mark.asyncio
 async def test_user_onboarding(client):
     global valid_token  # Declare the global variable
     response = await client.post(
         "/auth/register",
-        json={
-            "username": "testuser",
-            "email": "testuser@example.com",
-            "password": "password123"
-        }
+        json=test_data["user_registration_data"]
     )
     assert response.status_code == 200
     assert response.json()["message"] == "User registered successfully"
 
     response = await client.post(
         "/auth/login",
-        json={
-            "username": "testuser",
-            "password": "password123"
-        }
+        json=test_data["user_login_data"]
     )
     assert response.status_code == 200
     assert "access_token" in response.json()["data"]
@@ -133,7 +112,7 @@ async def test_add_review(client):
     assert created_book_id is not None, "Book ID is not set. Ensure test_create_book runs first."
     response = await client.post(
         f"/api/books/{created_book_id}/reviews",  # Use the created book's ID
-        json={"review_text": "Great book!", "rating": 5},
+        json=test_data['create_review_data'],
         headers={"Authorization": f"Bearer {valid_token}"}
     )
     assert response.status_code == 201
@@ -148,30 +127,13 @@ async def test_get_reviews(client):
 
 @pytest.mark.asyncio
 async def test_get_book_summary(client):
-    global created_book_id  # Use the shared variable
-    if created_book_id is None:  # Ensure a book exists
-        response = await client.post(
-            "/api/books/",
-            json={
-                "title": "Test Book for Summary",
-                "author": "Test Author",
-                "genre": "Fiction",
-                "year_published": 2023,
-                "summary": "A test book summary for summary endpoint."
-            },
-            headers={"Authorization": f"Bearer {valid_token}"}
-        )
-        assert response.status_code == 201
-        created_book_id = response.json()['data']["id"]
-
     response = await client.get(f"/api/books/{created_book_id}/summary", headers={"Authorization": f"Bearer {valid_token}"})
     assert response.status_code == 200
     assert "average_rating" in response.json()['data']
 
 @pytest.mark.asyncio
 async def test_generate_summary(client):
-    test_content="In today’s digital landscape, chatbots are becoming increasingly prevalent, serving as virtual assistants and conversation partners. However, a key challenge lies in crafting chatbots that can understand and respond to user queries in a context-aware manner, simulating natural conversation flow. This article delves into building a context-aware chatbot using LangChain, a powerful open-source framework, and Chat Model, a versatile tool for interacting with various language models."
-
+    test_content = test_data["test_content"]
     response = await client.post(
         "/api/books/generate-summary",
         json={"content": test_content},
@@ -199,8 +161,6 @@ async def test_generate_summary_by_book_name(client):
     )
     assert response.status_code == 200
     assert "summary" in response.json()['data']
-    print(response.json())
-    print("=============3434===============")
     assert response.json()['data']["summary"] != None
 
 

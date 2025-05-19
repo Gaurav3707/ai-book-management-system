@@ -17,6 +17,7 @@ from app.utils.messages.userMessages import (
     USERNAME_ALREADY_REGISTERED, EMAIL_ALREADY_REGISTERED,
     USER_PROFILE_RETRIEVED_SUCCESS
 )
+from test_data import test_data
 
 logger = get_logger(__name__)
 
@@ -67,11 +68,7 @@ async def test_register_user(client):
     logger.info("Testing user registration.")
     response = await client.post(
         "/auth/register",
-        json={
-            "username": "testuser",
-            "email": "testuser@example.com",
-            "password": "password123"
-        }
+        json=test_data["user_registration_data"]
     )
     assert response.status_code == 200
     assert response.json()["message"] == USER_REGISTERED_SUCCESS
@@ -108,10 +105,7 @@ async def test_login_user(client):
     global access_token  # Declare the global variable
     response = await client.post(
         "/auth/login",
-        json={
-            "username": "testuser",
-            "password": "password123"
-        }
+        json=test_data["user_login_data"]
     )
     assert response.status_code == 200
     assert "access_token" in response.json()["data"]
