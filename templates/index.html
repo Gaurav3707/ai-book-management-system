@@ -157,16 +157,22 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate</pre>
         </li>
         <li>
           Create a <code>.env</code> file in the root directory and add the following:
-          <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">DATABASE_URL=postgresql+asyncpg://&lt;username&gt;:&lt;password&gt;@&lt;host&gt;/&lt;database&gt;
-JWT_SECRET=your_jwt_secret
-JWT_ALGORITHM=HS256
-LOCALLY_DEPLOYED_LLM_ENDPOINT=http://localhost:11434/api/generate
-AI_MODEL=llama3.2:1b</pre>
+          <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">
+DATABASE_URL=postgresql+asyncpg://&lt;username&gt;:&lt;password&gt;@&lt;host&gt;/&lt;database&gt;
+JWT_SECRET: Secret key for JWT authentication.
+JWT_ALGORITHM: Algorithm used for JWT.
+USE_LOCAL_MODEL: Boolean flag to indicate whether to use a locally deployed model.
+LOCALLY_DEPLOYED_LLM_ENDPOINT: Endpoint for the locally deployed AI model.
+LOCAL_AI_MODEL: The name of the locally deployed AI model.
+HOSTED_MODEL_API_KEY: API key for accessing the hosted AI model.
+HOSTED_MODEL_MODEL: The name of the hosted AI model.
+HOSTED_MODEL_ENDPOINT: Endpoint for the hosted AI model.
+          </pre>
         </li>
-        <li>
+        <!-- <li>
           Apply database migrations:
           <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">alembic upgrade head</pre>
-        </li>
+        </li> -->
         <li>
           Download and run the AI model using Ollama:
           <pre class="bg-indigo-50 p-4 rounded-lg text-indigo-900 text-sm font-mono overflow-x-auto shadow-inner">curl -fsSL https://ollama.com/install.sh | sh
@@ -327,8 +333,12 @@ ollama run llama3.2:1b</pre>
         <li><code>DATABASE_URL</code>: Connection string for the PostgreSQL database.</li>
         <li><code>JWT_SECRET</code>: Secret key for JWT authentication.</li>
         <li><code>JWT_ALGORITHM</code>: Algorithm used for JWT.</li>
-        <li><code>LOCALLY_DEPLOYED_LLM_ENDPOINT</code>: Endpoint for the AI model to generate summaries and recommendations.</li>
-        <li><code>AI_MODEL</code>: The name of the AI model pulled on Ollama.</li>
+        <li><code>USE_LOCAL_MODEL</code>: Boolean flag to indicate whether to use a locally deployed model.</li>
+        <li><code>LOCALLY_DEPLOYED_LLM_ENDPOINT</code>: Endpoint for the locally deployed AI model.</li>
+        <li><code>LOCAL_AI_MODEL</code>: The name of the locally deployed AI model.</li>
+        <li><code>HOSTED_MODEL_API_KEY</code>: API key for accessing the hosted AI model.</li>
+        <li><code>HOSTED_MODEL_MODEL</code>: The name of the hosted AI model.</li>
+        <li><code>HOSTED_MODEL_ENDPOINT</code>: Endpoint for the hosted AI model.</li>
       </ul>
     </section>
 
