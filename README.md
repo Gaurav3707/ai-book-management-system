@@ -2,6 +2,10 @@
 
 The Book Management System is a FastAPI-based application that allows users to manage books and their reviews. It includes features like adding, updating, deleting books, managing reviews, and generating summaries using an external AI model. The application leverages a locally running Ollama instance to generate book summaries and provide book recommendations.
 
+## Production Link
+
+Access the production version of the application here: [Book Management System](https://ai-book-management.leapcell.app/)
+
 ## Features
 
 - Add, update, delete books.
